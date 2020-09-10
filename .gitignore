@@ -1,0 +1,8 @@
+*.elf
+*.lst
+*.bin
+*.log
+*/obj/
+*/*/obj/
+User/Startup/*.o
+.vscode

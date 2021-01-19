@@ -4,23 +4,10 @@ INCFLAG =\
 
 CFLAGS += $(INCFLAG)
 
-OBJS =\
-$(OBJDIR)/arch.o \
-$(OBJDIR)/core.o \
-$(OBJDIR)/event.o \
-$(OBJDIR)/flag.o \
-$(OBJDIR)/hook.o \
-$(OBJDIR)/kernelHeap.o \
-$(OBJDIR)/mbox.o \
-$(OBJDIR)/mutex.o \
-$(OBJDIR)/queue.o \
-$(OBJDIR)/sem.o \
-$(OBJDIR)/serviceReq.o \
-$(OBJDIR)/task.o \
-$(OBJDIR)/time.o \
-$(OBJDIR)/timer.o \
-$(OBJDIR)/utility.o \
-$(OBJDIR)/port.o \
+SRCOBJS =\
+$(patsubst %.c, %.o, $(wildcard ./src/*.c)) 
+
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: $(OBJS)
 

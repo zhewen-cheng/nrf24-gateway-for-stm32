@@ -3,16 +3,20 @@ INCFLAG =\
 -Iinc \
 -I../System/STM32/inc \
 -I../System/CMSIS/inc \
--I../System/NRF24/inc
+-I../System/NRF24/inc \
+-I../System/ETH/inc \
+-I../CoOS/inc \
+-I../NET/inc
+
 
 
 CFLAGS  += $(INCFLAG)
 
-OBJS =\
-$(OBJDIR)/user_config.o \
-$(OBJDIR)/main.o \
-$(OBJDIR)/stm32f4xx_it.o \
+SRCOBJS =\
+$(patsubst %.c, %.o, $(wildcard ./src/*.c)) \
 Startup/startup.o
+
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: $(OBJS)
 

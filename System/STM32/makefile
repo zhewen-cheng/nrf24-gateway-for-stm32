@@ -1,37 +1,15 @@
 INCFLAG =\
 -I. \
 -Iinc \
--I../CMSIS/inc
+-I../CMSIS/inc \
+-I../ETH/inc
 
 CFLAGS += $(INCFLAG)
 
-OBJS = \
-$(OBJDIR)/misc.o \
-$(OBJDIR)/stm32f4xx_adc.o \
-$(OBJDIR)/stm32f4xx_can.o \
-$(OBJDIR)/stm32f4xx_dac.o \
-$(OBJDIR)/stm32f4xx_dbgmcu.o \
-$(OBJDIR)/stm32f4xx_dcmi.o \
-$(OBJDIR)/stm32f4xx_dma.o \
-$(OBJDIR)/stm32f4xx_dma2d.o \
-$(OBJDIR)/stm32f4xx_exti.o \
-$(OBJDIR)/stm32f4xx_flash.o \
-$(OBJDIR)/stm32f4xx_fmc.o \
-$(OBJDIR)/stm32f4xx_gpio.o \
-$(OBJDIR)/stm32f4xx_i2c.o \
-$(OBJDIR)/stm32f4xx_iwdg.o \
-$(OBJDIR)/stm32f4xx_ltdc.o\
-$(OBJDIR)/stm32f4xx_pwr.o \
-$(OBJDIR)/stm32f4xx_rcc.o \
-$(OBJDIR)/stm32f4xx_rng.o \
-$(OBJDIR)/stm32f4xx_rtc.o \
-$(OBJDIR)/stm32f4xx_sai.o \
-$(OBJDIR)/stm32f4xx_sdio.o \
-$(OBJDIR)/stm32f4xx_spi.o \
-$(OBJDIR)/stm32f4xx_syscfg.o\
-$(OBJDIR)/stm32f4xx_tim.o \
-$(OBJDIR)/stm32f4xx_usart.o\
-$(OBJDIR)/stm32f4xx_wwdg.o 
+SRCOBJS =\
+$(patsubst %.c, %.o, $(wildcard ./src/*.c)) 
+
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: $(OBJS)
 

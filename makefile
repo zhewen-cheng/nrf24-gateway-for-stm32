@@ -18,7 +18,7 @@ GREEN 	:= "\033[32;1m"
 YELLOW 	:= "\033[33;1m"
 BLUE  	:= "\033[34;1m"
 PURPLE 	:= "\033[35;1m"
-CYAN  	:= "\033[361m"
+CYAN  	:= "\033[36;1m"
 RST		:= "\033[0m"
 
 NOW := $(shell date +"%Y-%m-%d %H:%M:%S")
@@ -31,21 +31,26 @@ OCDCFG 		= ./openocd.cfg
 TAIL		= multitail
 LOGFILE		= ./build.log
 
-SCROBJS =\
+SRCOBJS =\
 $(patsubst %.c, %.o, $(wildcard ./User/src/*.c)) \
 $(patsubst %.c, %.o, $(wildcard ./System/*/src/*.c)) \
+$(patsubst %.c, %.o, $(wildcard ./CoOS/src/*.c)) \
+$(patsubst %.c, %.o, $(wildcard ./NET/src/*.c)) \
 ./User/Startup/startup.o
 
-OBJS = $(subst /src/,/obj/, $(SCROBJS))
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: main.bin
 	@echo $(YELLOW)"Flash $< into board..."$(RST)
 	openocd -f $(OCDCFG)  				\
 			-c "init"                   \
             -c "reset init"             \
-            -c "stm32f2x unlock 0"      \
+            -c "poll"             \
+            -c "reset halt"             \
+            -c "stm32f4x unlock 0"      \
             -c "flash probe 0"          \
             -c "flash info 0"           \
+            -c "stm32f4x mass_erase 0"           \
             -c "flash write_image erase $< 0x8000000" \
             -c "reset run" -c shutdown
 	@echo $(GREEN)"Finish flash $< into board."$(RST)
@@ -53,10 +58,16 @@ all: main.bin
 
 obj:
 	$(MAKE) all -C System
+	@echo ""
+	@echo $(YELLOW)"Build CoOS files..."$(RST)
+	$(MAKE) all -C CoOS
+	@echo $(GREEN)"Finish building CoOS files."$(RST)
+	@echo ""
 	@echo $(YELLOW)"Build user files..."$(RST)
 	$(MAKE) all -C User
 	@echo $(GREEN)"Finish building user files."$(RST)
-	@echo ""
+	$(MAKE) all -C NET
+	@echo $(GREEN)"Finish building net files."$(RST)
 
 main.bin: obj main.elf
 	@echo $(YELLOW)"Copy file main.elf..."$(RST)
@@ -83,6 +94,8 @@ debug:
 clean:
 	$(MAKE) clean -e -C System
 	$(MAKE) clean -e -C User
+	$(MAKE) clean -e -C CoOS
+	$(MAKE) clean -e -C NET
 	-rm -rf main.bin main.elf main.lst
 	@echo $(NOW) INFO Clean everythings up. >> build.log
 ifdef clean_dir

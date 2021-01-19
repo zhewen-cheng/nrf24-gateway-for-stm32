@@ -11,8 +11,13 @@ all:
 	$(MAKE) all -C NRF24
 	@echo $(GREEN)"Finish building NRF24."$(RST)
 	@echo ""
+	@echo $(YELLOW)"Build ETH..."$(RST)
+	$(MAKE) all -C ETH
+	@echo $(GREEN)"Finish building ETH."$(RST)
+	@echo ""
 
 clean:
 	$(MAKE) clean -e -C CMSIS
 	$(MAKE) clean -e -C STM32
 	$(MAKE) clean -e -C NRF24
+	$(MAKE) clean -e -C ETH

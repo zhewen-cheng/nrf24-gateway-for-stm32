@@ -7,14 +7,11 @@
  *******************************************************************************
  */ 
 
-#include <stdio.h>
 #include <stdarg.h>
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 #include "nrf24l01.h"
 #include "user_config.h"
-
-
 
 /**
  *******************************************************************************
@@ -24,10 +21,10 @@
  * @retval     None
  *******************************************************************************
  */
-void UART_Init(void){
-
+void UART_Init(void)
+{
 	USART_InitTypeDef USART_InitStructure;
-    GPIO_InitTypeDef   GPIO_InitStructure;
+    GPIO_InitTypeDef  GPIO_InitStructure;
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA,  ENABLE);  
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -36,8 +33,8 @@ void UART_Init(void){
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
 	
 	GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin 	= GPIO_Pin_9;
-    GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
@@ -68,7 +65,7 @@ void UART_Init(void){
  * @retval     None
  *******************************************************************************
  */
-void LED_Init(uint8_t led_pin)
+void LED_Init(void)
 {
     GPIO_InitTypeDef LED_InitStruct;
 
@@ -76,19 +73,33 @@ void LED_Init(uint8_t led_pin)
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
 
     GPIO_StructInit(&LED_InitStruct);
-    LED_InitStruct.GPIO_Pin   = led_pin ;
+    LED_InitStruct.GPIO_Pin   = GPIO_Pin_13 | GPIO_Pin_14;
     LED_InitStruct.GPIO_Mode  = GPIO_Mode_OUT;
     LED_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
     GPIO_Init(GPIOG, &LED_InitStruct);
 }
 
-void Delay_Init(uint8_t frec)
+void Button_Init(void)
+{
+    GPIO_InitTypeDef Button_InitStruct;
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+
+    GPIO_StructInit(&Button_InitStruct);
+    Button_InitStruct.GPIO_Pin  = GPIO_Pin_0;
+    Button_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+    //Button_InitStruct.GPIO_OType = GPIO_OType_PP;
+    Button_InitStruct.GPIO_PuPd = GPIO_PuPd_DOWN;
+    //Button_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &Button_InitStruct);
+}
+
+void Delay_Init(void)
 {
     RCC_ClocksTypeDef RCC_Clocks;
     RCC_GetClocksFreq(&RCC_Clocks);    /* get system clock */
     /* while loop takes 4 cycles */
     /* Enable SysTick for Delay function */
-    if (SysTick_Config(SystemCoreClock / frec)) //1ms
+    if (SysTick_Config(SystemCoreClock / 1000)) //1ms
     { 
         /* Capture error */ 
         while (1);
@@ -103,7 +114,7 @@ void Delay_Init(uint8_t frec)
  * @retval     None
  *******************************************************************************
  */
-void stm_putchar(const char ch)
+void _putchar(const char ch)
 {
     while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
     USART1->DR = (uint8_t) ch;
@@ -117,138 +128,186 @@ void stm_putchar(const char ch)
  * @retval     None
  *******************************************************************************
  */
-void stm_putstr(const char *str)
+void _putstr(const char *str)
 {
     while (*str) {
         if (*str == '\n') {
-            stm_putchar('\n');
+            _putchar('\n');
             str++;
-        }
-        else if (*str == '\r') {
-            stm_putchar('\r');
+        } else if (*str == '\r') {
+            _putchar('\r');
             str++;
-        }
-        else {
-            stm_putchar(*str++);
+        } else {
+            _putchar(*str++);
         }
     }
 }
 
+uint64_t _pow(int32_t base, int32_t exp)
+{
+    uint64_t sum = 1;
+
+    /* multiplicative base */
+    while (exp--) {
+        sum *= base;
+    }
+
+    return sum;
+}
+
+uint64_t _strlen(const char *str)
+{
+    const char *s;
+
+    /* goto the end of the string */
+    for (s = str; *s != '\0'; ++s) {
+        /* passing */
+    }
+    
+    /* return memory address's differece */
+    return s - str;
+}
+
+/**
+ *******************************************************************************
+ * @brief      Print format string via USART1.
+ * @param[in]  fmt       Format to print.
+ * @param[out] None
+ * @retval     printed   Printed string length.
+ *******************************************************************************
+ */
 int debugs(const char *fmt,...)
 {
-	int32_t printed;
-	char printf_buf[300];
-	va_list args;
+#ifdef __DEBUG
+    va_list ap;
+    int val,r_val,space=0;
+	char count, ch;
+	char *s = 0;
+    int res = 0;
 
-	va_start(args, fmt);
-	printed = vsprintf(printf_buf, fmt, args);
-	va_end(args);
+    va_start(ap,fmt);
+    while ('\0' != *fmt) { 
+        switch (*fmt) {
+        case '%':
+            fmt++;
+            while (*fmt >= '0' && *fmt <= '9') {
+                space *= 10;
+                space += *fmt - '0';
+                fmt++;
+            }
 
-	stm_putstr(printf_buf);
+            switch (*fmt) { 
+            /* handle integer var */
+            case 'd':
+                val = va_arg(ap, int); 
+ 			    
+                /* if val is negative or zero */
+                if (val < 0) {
+                    _putchar('-');
+                    val = 0 - val;
+                } else if (val == 0) {
+                    _putchar('0');
+                }
+                        
+                r_val = val; 
+                count = 0; 
+				while (r_val) {
+                    count++;
+                    r_val /= 10;
+                }
+				res += count;
+                r_val = val; 
+                while (count) { 
+                    ch = r_val / _pow(10,count - 1);
+					r_val %= _pow(10, count - 1);
+					_putchar(ch + '0');
+					count--;
+				}
+                break;
 
-	return printed;
-}
+            /* handle integer var with hex output */
+            case 'x':
+                val = va_arg(ap, int);
 
-static void print_status(void)
-{
-    uint8_t status = NRF24L01_ReadRegister(NRF24L01_REG_STATUS);
+                /* if val is negative or zero */
+                if (val<0) {
+                    _putchar('-');
+                    val = 0 - val;
+                } else if (val == 0) {
+                    _putchar('0');
+                }
+                        
+                r_val = val; 
+                count = 0;
+				while (r_val) {
+                    count++;
+                    r_val /= 16; 
+                }
+                res += count;
+                r_val = val; 
+                while(count) { 
+                    ch = r_val / _pow(16, count - 1);
+					r_val %= _pow(16, count - 1);
+					if (ch <= 9) {
+                        _putchar(ch + '0');
+                    } else {
+						_putchar(ch - 10 + 'a');
+                    }
+					count--;
+				}
+				break;
 
-    debugs("STATUS\t\t = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n",
-            status,
-			(status & 1<<(6)) ? 1 : 0,      //NRF24L01_RX_DR
-			(status & 1<<(5)) ? 1 : 0,      //NRF24L01_TX_DS
-			(status & 1<<(4)) ? 1 : 0,      //NRF24L01_MAX_RT
-			(status >> 1) & 0x07,           //NRF24L01_RX_P_NO
-			(status & 1<<(0)) ? 1 : 0);     //NRF24L01_TX_FULL
-}
+            /* handle string var */
+            case 's':
+				s = va_arg(ap, char *);
+                
+                if (space) {
+                    int len = _strlen(s);
+                    while (len < space) {
+                        _putchar(' ');
+                        space --;
+                    }
+                }
 
-static void print_address_register(const char *name, uint8_t reg, uint8_t counts)
-{
-	debugs("%s\t =", name);
-	while (counts--) {
-		debugs(" 0x");
-		debugs("%02x", NRF24L01_ReadRegister(reg++));
-	}
-	debugs("\r\n");
-}
+				_putstr(s);
+                res += _strlen(s);
+				break;
+					
+            /* handle character var */
+            case 'c':
+                _putchar( (char)va_arg(ap, int ));
+				res += 1;
+                break;
 
-static void print_byte_register(const char *name, uint8_t reg, uint8_t counts)
-{
-    uint8_t buf;
-	debugs("%s\t = ", name);
-	while (counts--) {
-		debugs("0x%02x ", NRF24L01_ReadRegisterMulti(reg++,&buf,1));
-	}
-	debugs("\r\n");
-}
+            default:
+				break;
+		    }
+			break;
+            
+            /* handle escape character: newline */
+            case '\n':
+				_putchar('\n');
+				res += 1;
+				break;
+			
+            /* handle escape character: return */
+			case '\r':
+				_putchar('\r');
+				res += 1;
+				break;
+			
+            /* just output character */
+			default:
+				_putchar(*fmt);
+				res += 1;
+                break;
+		}
+		fmt++;
+     }
+    va_end(ap);
 
-uint8_t NRF24L01_get_pa_power(void)
-{
-	return (NRF24L01_ReadRegister(NRF24L01_REG_RF_SETUP) & (1<<1 | 1<<2)) >> 1;
-}
-
-NRF24L01_DataRate_t NRF24L01_get_datarate(void) 
-{
-	NRF24L01_DataRate_t result;
-	uint8_t rf_setup = NRF24L01_ReadRegister(NRF24L01_REG_RF_SETUP) & (1<<(NRF24L01_RF_DR_LOW) | 1<<(NRF24L01_RF_DR_HIGH));
-
-    if (rf_setup == 1<<(NRF24L01_RF_DR_LOW)) {
-        // '10' = 250KBPS
-        result = NRF24L01_DataRate_250k;
-    } else if (rf_setup == 1<<(NRF24L01_RF_DR_HIGH)) {
-        // '01' = 2MBPS
-        result = NRF24L01_DataRate_2M;
-    } else {
-        // '00' = 1MBPS
-        result = NRF24L01_DataRate_1M;
-    }
-
-    return result;
-}
-
-NRF24L01_CRCLength_t NRF24L01_get_crc_length(void)
-{
-    NRF24L01_CRCLength_t result = NRF24L01_CRC_DISABLED;
-
-    uint8_t config = NRF24L01_ReadRegister(NRF24L01_REG_CONFIG) & (1<<(NRF24L01_CRCO) | 1<<(NRF24L01_EN_CRC));
-    uint8_t AA = NRF24L01_ReadRegister(NRF24L01_REG_EN_AA);
-
-    if (config & 1<<(NRF24L01_EN_CRC) || AA) {
-        if (config & 1<<(NRF24L01_CRCO)) {
-            result = NRF24L01_CRC_16;
-        } else {
-            result = NRF24L01_CRC_8;
-        }
-    }
-
-    return result;
-}
-
-
-void print_details(void)
-{
-	const char data_rate[][8] = {"1Mbps", "2Mbps", "250Kbps"};
-	const char crc_len[][8] = {"OFF", "8BIT", "16BIT"};
-	const char pa_power[][8] = {"PA_MIN", "PA_LOW", "PA_HIGH", "PA_MAX"};
-
-	debugs("\r\n================ NRF Configuration ===============\r\n");
-	print_status();
-
-	print_address_register("RX_ADDR_P0-1", NRF24L01_REG_RX_ADDR_P0, 2);
-	print_byte_register("RX_ADDR_P2-5", NRF24L01_REG_RX_ADDR_P2, 4);
-	print_address_register("TX_ADDR\t", NRF24L01_REG_TX_ADDR, 1);
-
-	print_byte_register("RX_PW_P0-P5", NRF24L01_REG_RX_PW_P0, 6);
-	print_byte_register("EN_AA\t\t", NRF24L01_REG_EN_AA, 1);
-	print_byte_register("EN_RXADDR\t", NRF24L01_REG_EN_RXADDR, 1);
-	print_byte_register("RF_CH\t\t", NRF24L01_REG_RF_CH, 1);
-	print_byte_register("RF_SETUP\t", NRF24L01_REG_RF_SETUP, 1);
-	print_byte_register("CONFIG\t", NRF24L01_REG_CONFIG, 1);
-	print_byte_register("DYNPD/FEATURE", NRF24L01_REG_DYNPD, 2);
-
-    debugs("ABC\t\t = 0x%02x\r\n",NRF24L01_ReadRegister(0x05));
-	debugs("Data Rate\t\t = %s\r\n", data_rate[NRF24L01_get_datarate()]);
-	debugs("Model\t\t\t = nRF24L01\r\n");
-	debugs("CRC Length\t\t = %s\r\n", crc_len[NRF24L01_get_crc_length()]);
-	debugs("PA Power\t\t = %s\r\n", pa_power[NRF24L01_get_pa_power()]);
+	return res;
+#else
+    return -1;
+#endif
 }

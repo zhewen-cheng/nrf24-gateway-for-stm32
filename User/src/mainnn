@@ -1,0 +1,59 @@
+#include "stm32f4xx_conf.h"
+#include "user_config.h"
+#include "stm32f4xx_gpio.h"
+#include "main.h"
+#include "coocox.h"
+
+
+
+OS_STK led13_stk[TASK_STK_SIZE];
+OS_STK led14_stk[TASK_STK_SIZE];
+
+extern P_OSTCB DlyList;   
+
+void bling_led13(void *par){
+    while(1){
+        GPIO_SetBits(GPIOG,GPIO_Pin_13);
+        CoTimeDelay(0,0,1,0);
+        GPIO_ResetBits(GPIOG,GPIO_Pin_13);
+        CoTimeDelay(0,0,1,0);
+        
+  }
+  CoExitTask();
+}
+
+void bling_led14(void *par){
+    while(1){
+        GPIO_ResetBits(GPIOG,GPIO_Pin_14);
+        CoTimeDelay(0,0,1,0);
+        GPIO_SetBits(GPIOG,GPIO_Pin_14);
+        CoTimeDelay(0,0,1,0);
+  }
+  CoExitTask();
+}
+
+int main(void)
+{
+    UART_Init();
+    debugs("\n\n\n\r\n");
+
+
+    debugs("[System] Initial system tick ...");
+    //Delay_Init();
+	  debugs(GRN_BOLD"[OK]"ARESET"\r\n");
+
+
+  LED_Init();
+	debugs("[System] Initial CoOS ...");
+  CoInitOS();
+	debugs(GRN_BOLD"[OK]"ARESET"\r\n");
+	CoCreateTask(bling_led13, (void*)0, 20, &led13_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
+  CoCreateTask(bling_led14, (void*)0, 20, &led14_stk[TASK_STK_SIZE-1], TASK_STK_SIZE);
+  debugs(GRN_BOLD"[OK]"ARESET"\r\n");
+
+	debugs("[System] Start CoOS ...\r\n");
+  CoStartOS();
+	debugs(RED_BOLD"[System] System initial failed!\r\n"ARESET);
+
+}
+

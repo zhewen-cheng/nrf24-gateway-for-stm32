@@ -1,11 +1,15 @@
 INCFLAG =\
 -I. \
 -Iinc \
--I../STM32/inc
+-I../STM32/inc \
+-I../ETH/inc
 
 CFLAGS += $(INCFLAG)
 
-OBJS = $(OBJDIR)/system_stm32f4xx.o
+SRCOBJS =\
+$(patsubst %.c, %.o, $(wildcard ./src/*.c)) 
+
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: $(OBJS)
 

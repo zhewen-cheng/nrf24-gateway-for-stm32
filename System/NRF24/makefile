@@ -4,21 +4,24 @@ INCFLAG =\
 -I../STM32/inc \
 -I../CMSIS/inc 
 
+
 CFLAGS  += $(INCFLAG)
 
-OBJS =\
-$(OBJDIR)/nrf24l01.o \
+SRCOBJS =\
+$(patsubst %.c, %.o, $(wildcard ./src/*.c)) 
+
+OBJS = $(subst /src/,/obj/, $(SRCOBJS))
 
 all: $(OBJS)
 
 $(OBJDIR)/%.o: src/%.c | $(OBJDIR)
 	@echo "bulid file: $<"
 	$(CC) $(CFLAGS) -MMD -MF$(@:%.o=%.d) -o $@ $<\
-        && echo $(NOW) INFO Objecting User/$< success. >> ../build.log \
-        || echo $(NOW) ERROR Objecting User/$< failed, stop building. >> ../build.log | exit 
+        && echo $(NOW) INFO Objecting System/NRF24/$< success. >> ../../build.log \
+        || echo $(NOW) ERROR Objecting System/NRF24/$< failed, stop building. >> ../../build.log | exit 
 
 $(OBJDIR):
-	@echo $(NOW) INFO Make new folder User/$(OBJDIR). >> ../build.log
+	@echo $(NOW) INFO Make new folder System/NRF24/$(OBJDIR). >> ../../build.log
 	mkdir -p $(OBJDIR)
 
 clean:

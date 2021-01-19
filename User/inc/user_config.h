@@ -9,6 +9,8 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
+#define __DEBUG
+
 /* ANSI define */
 #define RED_BOLD                "\x1b[;31;1m"
 #define YEL_BOLD                "\x1b[;33;1m"
@@ -19,28 +21,22 @@
 #define CYAN_BOLD_ITALIC        "\x1b[;36;1;3m"
 #define ARESET                  "\x1b[0;m"
 
-#define STM_LED_OFF(pin)		GPIO_WriteBit(GPIOG, (pin), Bit_RESET);
-#define STM_LED_ON(pin)			GPIO_WriteBit(GPIOG, (pin), Bit_SET);
+
+/* GPIO LED define */
+#define STM_LED_TOGGLE(pin)		GPIO_ToggleBits(GPIOG, (pin))
+#define STM_LED_OFF(pin)		GPIO_WriteBit(GPIOG, (pin), Bit_RESET)
+#define STM_LED_ON(pin)			GPIO_WriteBit(GPIOG, (pin), Bit_SET)
 
 #define LED_GREEN               GPIO_Pin_13
 #define LED_RED                 GPIO_Pin_14
-#define LED_BOTH                GPIO_Pin_13 | GPIO_Pin_14
-
 
 /* hardware initial function */
 void UART_Init(void);
-void LED_Init(uint8_t led_pin);
-void Delay_Init(uint8_t frec);
+void LED_Init(void);
+void Button_Init(void);
+void Delay_Init(void);
 
 /* printf */
 int debugs(const char *str,...);
-void print_details(void);
-
-/*hal extend function*/
-uint8_t NRF24L01_get_pa_power(void);
-NRF24L01_DataRate_t NRF24L01_get_datarate(void);
-NRF24L01_CRCLength_t NRF24L01_get_crc_length(void);
-
-
 
 #endif /* __USER_CONFIG_H__ */

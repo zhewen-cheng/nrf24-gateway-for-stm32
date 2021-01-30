@@ -41,7 +41,7 @@ extern "C" {
 /** X.x.x: Major version of the stack */
 #define LWIP_VERSION_MAJOR      1U
 /** x.X.x: Minor version of the stack */
-#define LWIP_VERSION_MINOR      4U
+#define LWIP_VERSION_MINOR      3U
 /** x.x.X: Revision of the stack */
 #define LWIP_VERSION_REVISION   1U
 /** For release candidates, this is set to 1..254

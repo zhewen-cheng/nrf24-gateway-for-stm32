@@ -2,7 +2,7 @@ INCFLAG =\
 -I. \
 -Iinc \
 -I../CMSIS/inc \
--I../ETH/inc
+
 
 CFLAGS += $(INCFLAG)
 
@@ -26,4 +26,3 @@ $(OBJDIR):
 clean:
 	-rm -rf $(OBJDIR)/*.o
 	-rm -rf $(OBJDIR)/*.d
-	

@@ -1,8 +1,8 @@
 INCFLAG =\
 -I. \
 -Iinc \
--I../STM32/inc \
--I../ETH/inc
+-I../STM32/inc 
+
 
 CFLAGS += $(INCFLAG)
 

@@ -185,7 +185,7 @@
   #endif
 
   #ifndef __FPU_PRESENT
-    #define __FPU_PRESENT             0U
+    #define __FPU_PRESENT             U
     #warning "__FPU_PRESENT not defined in device header file; using default!"
   #endif
 

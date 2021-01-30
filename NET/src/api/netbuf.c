@@ -57,21 +57,11 @@ netbuf *netbuf_new(void)
 {
   struct netbuf *buf;
 
-  buf = (struct netbuf *)memp_malloc(MEMP_NETBUF);
+  buf = memp_malloc(MEMP_NETBUF);
   if (buf != NULL) {
     buf->p = NULL;
     buf->ptr = NULL;
-    ip_addr_set_any(&buf->addr);
-    buf->port = 0;
-#if LWIP_NETBUF_RECVINFO || LWIP_CHECKSUM_ON_COPY
-#if LWIP_CHECKSUM_ON_COPY
-    buf->flags = 0;
-#endif /* LWIP_CHECKSUM_ON_COPY */
-    buf->toport_chksum = 0;
-#if LWIP_NETBUF_RECVINFO
-    ip_addr_set_any(&buf->toaddr);
-#endif /* LWIP_NETBUF_RECVINFO */
-#endif /* LWIP_NETBUF_RECVINFO || LWIP_CHECKSUM_ON_COPY */
+    buf->addr = NULL;
     return buf;
   } else {
     return NULL;

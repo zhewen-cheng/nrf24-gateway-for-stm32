@@ -33,16 +33,14 @@
 #define __LWIP_DEBUG_H__
 
 #include "lwip/arch.h"
-#include "lwip/opt.h"
 
 /** lower two bits indicate debug level
- * - 0 all
+ * - 0 off
  * - 1 warning
  * - 2 serious
  * - 3 severe
  */
-#define LWIP_DBG_LEVEL_ALL     0x00
-#define LWIP_DBG_LEVEL_OFF     LWIP_DBG_LEVEL_ALL /* compatibility define only */
+#define LWIP_DBG_LEVEL_OFF     0x00
 #define LWIP_DBG_LEVEL_WARNING 0x01 /* bad checksums, dropped packets, ... */
 #define LWIP_DBG_LEVEL_SERIOUS 0x02 /* memory allocation failures, ... */
 #define LWIP_DBG_LEVEL_SEVERE  0x03

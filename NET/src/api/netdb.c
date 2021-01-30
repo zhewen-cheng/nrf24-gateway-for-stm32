@@ -39,18 +39,16 @@
 
 #include "lwip/err.h"
 #include "lwip/mem.h"
-#include "lwip/memp.h"
 #include "lwip/ip_addr.h"
 #include "lwip/api.h"
-#include "lwip/dns.h"
 
 #include <string.h>
 #include <stdlib.h>
 
 /** helper struct for gethostbyname_r to access the char* buffer */
 struct gethostbyname_r_helper {
-  ip_addr_t *addr_list[2];
-  ip_addr_t addr;
+  struct ip_addr *addrs;
+  struct ip_addr addr;
   char *aliases;
 };
 
@@ -85,13 +83,13 @@ struct hostent*
 lwip_gethostbyname(const char *name)
 {
   err_t err;
-  ip_addr_t addr;
+  struct ip_addr addr;
 
   /* buffer variables for lwip_gethostbyname() */
   HOSTENT_STORAGE struct hostent s_hostent;
   HOSTENT_STORAGE char *s_aliases;
-  HOSTENT_STORAGE ip_addr_t s_hostent_addr;
-  HOSTENT_STORAGE ip_addr_t *s_phostent_addr[2];
+  HOSTENT_STORAGE struct ip_addr s_hostent_addr;
+  HOSTENT_STORAGE struct ip_addr *s_phostent_addr;
 
   /* query host IP address */
   err = netconn_gethostbyname(name, &addr);
@@ -103,12 +101,11 @@ lwip_gethostbyname(const char *name)
 
   /* fill hostent */
   s_hostent_addr = addr;
-  s_phostent_addr[0] = &s_hostent_addr;
-  s_phostent_addr[1] = NULL;
+  s_phostent_addr = &s_hostent_addr;
   s_hostent.h_name = (char*)name;
   s_hostent.h_aliases = &s_aliases;
   s_hostent.h_addrtype = AF_INET;
-  s_hostent.h_length = sizeof(ip_addr_t);
+  s_hostent.h_length = sizeof(struct ip_addr);
   s_hostent.h_addr_list = (char**)&s_phostent_addr;
 
 #if DNS_DEBUG
@@ -119,7 +116,7 @@ lwip_gethostbyname(const char *name)
     u8_t idx;
     for ( idx=0; s_hostent.h_aliases[idx]; idx++) {
       LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases[%i]->   == %p\n", idx, s_hostent.h_aliases[idx]));
-      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases[%i]->   == %s\n", idx, s_hostent.h_aliases[idx]));
+      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_aliases[%i]->   == %s\n",      idx, s_hostent.h_aliases[idx]));
     }
   }
   LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addrtype       == %d\n", s_hostent.h_addrtype));
@@ -129,7 +126,7 @@ lwip_gethostbyname(const char *name)
     u8_t idx;
     for ( idx=0; s_hostent.h_addr_list[idx]; idx++) {
       LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]   == %p\n", idx, s_hostent.h_addr_list[idx]));
-      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]-> == %s\n", idx, ip_ntoa((ip_addr_t*)s_hostent.h_addr_list[idx])));
+      LWIP_DEBUGF(DNS_DEBUG, ("hostent.h_addr_list[%i]-> == %s\n", idx, inet_ntoa(*((struct in_addr*)(s_hostent.h_addr_list[idx])))));
     }
   }
 #endif /* DNS_DEBUG */
@@ -180,7 +177,7 @@ lwip_gethostbyname_r(const char *name, struct hostent *ret, char *buf,
   }
   /* first thing to do: set *result to nothing */
   *result = NULL;
-  if ((name == NULL) || (ret == NULL) || (buf == NULL)) {
+  if ((name == NULL) || (ret == NULL) || (buf == 0)) {
     /* not all arguments given */
     *h_errnop = EINVAL;
     return -1;
@@ -197,10 +194,10 @@ lwip_gethostbyname_r(const char *name, struct hostent *ret, char *buf,
   hostname = ((char*)h) + sizeof(struct gethostbyname_r_helper);
 
   /* query host IP address */
-  err = netconn_gethostbyname(name, &h->addr);
+  err = netconn_gethostbyname(name, &(h->addr));
   if (err != ERR_OK) {
     LWIP_DEBUGF(DNS_DEBUG, ("lwip_gethostbyname(%s) failed, err=%d\n", name, err));
-    *h_errnop = HOST_NOT_FOUND;
+    *h_errnop = ENSRNOTFOUND;
     return -1;
   }
 
@@ -209,14 +206,13 @@ lwip_gethostbyname_r(const char *name, struct hostent *ret, char *buf,
   hostname[namelen] = 0;
 
   /* fill hostent */
-  h->addr_list[0] = &h->addr;
-  h->addr_list[1] = NULL;
+  h->addrs = &(h->addr);
   h->aliases = NULL;
-  ret->h_name = hostname;
-  ret->h_aliases = &h->aliases;
+  ret->h_name = (char*)hostname;
+  ret->h_aliases = &(h->aliases);
   ret->h_addrtype = AF_INET;
-  ret->h_length = sizeof(ip_addr_t);
-  ret->h_addr_list = (char**)&h->addr_list;
+  ret->h_length = sizeof(struct ip_addr);
+  ret->h_addr_list = (char**)&(h->addrs);
 
   /* set result != NULL */
   *result = ret;
@@ -238,8 +234,14 @@ lwip_freeaddrinfo(struct addrinfo *ai)
   struct addrinfo *next;
 
   while (ai != NULL) {
+    if (ai->ai_addr != NULL) {
+      mem_free(ai->ai_addr);
+    }
+    if (ai->ai_canonname != NULL) {
+      mem_free(ai->ai_canonname);
+    }
     next = ai->ai_next;
-    memp_free(MEMP_NETDB, ai);
+    mem_free(ai);
     ai = next;
   }
 }
@@ -268,12 +270,10 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
        const struct addrinfo *hints, struct addrinfo **res)
 {
   err_t err;
-  ip_addr_t addr;
+  struct ip_addr addr;
   struct addrinfo *ai;
   struct sockaddr_in *sa = NULL;
   int port_nr = 0;
-  size_t total_size;
-  size_t namelen = 0;
 
   if (res == NULL) {
     return EAI_FAIL;
@@ -300,29 +300,24 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
     }
   } else {
     /* service location specified, use loopback address */
-    ip_addr_set_loopback(&addr);
+    addr.addr = INADDR_LOOPBACK;
   }
 
-  total_size = sizeof(struct addrinfo) + sizeof(struct sockaddr_in);
-  if (nodename != NULL) {
-    namelen = strlen(nodename);
-    LWIP_ASSERT("namelen is too long", (namelen + 1) <= (mem_size_t)-1);
-    total_size += namelen + 1;
-  }
-  /* If this fails, please report to lwip-devel! :-) */
-  LWIP_ASSERT("total_size <= NETDB_ELEM_SIZE: please report this!",
-    total_size <= NETDB_ELEM_SIZE);
-  ai = (struct addrinfo *)memp_malloc(MEMP_NETDB);
+  ai = mem_malloc(sizeof(struct addrinfo));
   if (ai == NULL) {
     goto memerr;
   }
-  memset(ai, 0, total_size);
-  sa = (struct sockaddr_in*)((u8_t*)ai + sizeof(struct addrinfo));
+  memset(ai, 0, sizeof(struct addrinfo));
+  sa = mem_malloc(sizeof(struct sockaddr_in));
+  if (sa == NULL) {
+    goto memerr;
+  }
+  memset(sa, 0, sizeof(struct sockaddr_in));
   /* set up sockaddr */
-  inet_addr_from_ipaddr(&sa->sin_addr, &addr);
+  sa->sin_addr.s_addr = addr.addr;
   sa->sin_family = AF_INET;
   sa->sin_len = sizeof(struct sockaddr_in);
-  sa->sin_port = htons((u16_t)port_nr);
+  sa->sin_port = htons(port_nr);
 
   /* set up addrinfo */
   ai->ai_family = AF_INET;
@@ -333,7 +328,12 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
   }
   if (nodename != NULL) {
     /* copy nodename to canonname if specified */
-    ai->ai_canonname = ((char*)ai + sizeof(struct addrinfo) + sizeof(struct sockaddr_in));
+    size_t namelen = strlen(nodename);
+    LWIP_ASSERT("namelen is too long", (namelen + 1) <= (mem_size_t)-1);
+    ai->ai_canonname = mem_malloc((mem_size_t)(namelen + 1));
+    if (ai->ai_canonname == NULL) {
+      goto memerr;
+    }
     MEMCPY(ai->ai_canonname, nodename, namelen);
     ai->ai_canonname[namelen] = 0;
   }
@@ -345,7 +345,10 @@ lwip_getaddrinfo(const char *nodename, const char *servname,
   return 0;
 memerr:
   if (ai != NULL) {
-    memp_free(MEMP_NETDB, ai);
+    mem_free(ai);
+  }
+  if (sa != NULL) {
+    mem_free(sa);
   }
   return EAI_MEMORY;
 }

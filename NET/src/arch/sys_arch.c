@@ -3,8 +3,8 @@
 #include "lwip/sys.h"
 #include "lwip/mem.h"
 #include "lwip/stats.h"
-#include "osevent.h"
-#include "LPC17xx_reg.h"
+#include "OsEvent.h"
+
 
 /* This is the number of threads that can be started with sys_thread_new() */
 //static struct timeoutlist lwip_timeout[LWIP_TASK_MAX];

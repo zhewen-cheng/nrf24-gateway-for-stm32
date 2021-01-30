@@ -1,3 +1,9 @@
+/**
+ * @file
+ * Loop Interface
+ *
+ */
+
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
  * All rights reserved. 
@@ -29,44 +35,32 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-
 #include "lwip/opt.h"
-#include "lwip/ip_addr.h"
-#include "lwip/inet.h"
 
-u8_t
-ip_addr_netcmp(struct ip_addr *addr1, struct ip_addr *addr2,
-                struct ip_addr *mask)
+#if LWIP_HAVE_LOOPIF
+
+#include "netif/loopif.h"
+#include "lwip/snmp.h"
+
+/**
+ * Initialize a lwip network interface structure for a loopback interface
+ *
+ * @param netif the lwip network interface structure for this loopif
+ * @return ERR_OK if the loopif is initialized
+ *         ERR_MEM if private data couldn't be allocated
+ */
+err_t
+loopif_init(struct netif *netif)
 {
-  return((addr1->addr[0] & mask->addr[0]) == (addr2->addr[0] & mask->addr[0]) &&
-         (addr1->addr[1] & mask->addr[1]) == (addr2->addr[1] & mask->addr[1]) &&
-         (addr1->addr[2] & mask->addr[2]) == (addr2->addr[2] & mask->addr[2]) &&
-         (addr1->addr[3] & mask->addr[3]) == (addr2->addr[3] & mask->addr[3]));
-        
+  /* initialize the snmp variables and counters inside the struct netif
+   * ifSpeed: no assumption can be made!
+   */
+  NETIF_INIT_SNMP(netif, snmp_ifType_softwareLoopback, 0);
+
+  netif->name[0] = 'l';
+  netif->name[1] = 'o';
+  netif->output = netif_loop_output;
+  return ERR_OK;
 }
 
-u8_t
-ip_addr_cmp(struct ip_addr *addr1, struct ip_addr *addr2)
-{
-  return(addr1->addr[0] == addr2->addr[0] &&
-         addr1->addr[1] == addr2->addr[1] &&
-         addr1->addr[2] == addr2->addr[2] &&
-         addr1->addr[3] == addr2->addr[3]);
-}
-
-void
-ip_addr_set(struct ip_addr *dest, struct ip_addr *src)
-{
-  SMEMCPY(dest, src, sizeof(struct ip_addr));
-  /*  dest->addr[0] = src->addr[0];
-  dest->addr[1] = src->addr[1];
-  dest->addr[2] = src->addr[2];
-  dest->addr[3] = src->addr[3];*/
-}
-
-u8_t
-ip_addr_isany(struct ip_addr *addr)
-{
-  if (addr == NULL) return 1;
-  return((addr->addr[0] | addr->addr[1] | addr->addr[2] | addr->addr[3]) == 0);
-}
+#endif /* LWIP_HAVE_LOOPIF */

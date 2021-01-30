@@ -35,7 +35,8 @@ SRCOBJS =\
 $(patsubst %.c, %.o, $(wildcard ./User/src/*.c)) \
 $(patsubst %.c, %.o, $(wildcard ./System/*/src/*.c)) \
 $(patsubst %.c, %.o, $(wildcard ./CoOS/src/*.c)) \
-$(patsubst %.c, %.o, $(wildcard ./NET/src/*.c)) \
+$(patsubst %.c, %.o, $(wildcard ./NET/src/*/*.c)) \
+$(patsubst %.c, %.o, $(wildcard ./NET/src/*/*/*.c)) \
 ./User/Startup/startup.o
 
 OBJS = $(subst /src/,/obj/, $(SRCOBJS))
@@ -58,16 +59,14 @@ all: main.bin
 
 obj:
 	$(MAKE) all -C System
-	@echo ""
-	@echo $(YELLOW)"Build CoOS files..."$(RST)
-	$(MAKE) all -C CoOS
-	@echo $(GREEN)"Finish building CoOS files."$(RST)
-	@echo ""
 	@echo $(YELLOW)"Build user files..."$(RST)
 	$(MAKE) all -C User
 	@echo $(GREEN)"Finish building user files."$(RST)
+	$(MAKE) all -C CoOS
+	@echo $(GREEN)"Finish building CoOS files."$(RST)
 	$(MAKE) all -C NET
-	@echo $(GREEN)"Finish building net files."$(RST)
+	@echo $(GREEN)"Finish building NET files."$(RST)
+	@echo ""
 
 main.bin: obj main.elf
 	@echo $(YELLOW)"Copy file main.elf..."$(RST)
@@ -90,6 +89,7 @@ log:
 debug:
 	$(GD) -ex "target remote :3333" \
 	-ex "c" main.elf
+	
 
 clean:
 	$(MAKE) clean -e -C System

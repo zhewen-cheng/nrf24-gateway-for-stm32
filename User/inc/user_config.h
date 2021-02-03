@@ -32,6 +32,7 @@
 
 /* hardware initial function */
 void UART_Init(void);
+void ETH_GpioInit(void);
 void LED_Init(void);
 void Button_Init(void);
 void Delay_Init(void);

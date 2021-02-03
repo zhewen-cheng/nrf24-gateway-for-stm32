@@ -57,6 +57,53 @@ void UART_Init(void)
 }		
 
 
+void ETH_GpioInit(void)
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG | RCC_AHB1Periph_GPIOC , ENABLE);
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+
+    /*MAC和PHY之間使用RMII街口*/
+    SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII);
+
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOG, GPIO_PinSource11, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOG, GPIO_PinSource13, GPIO_AF_ETH);
+    GPIO_PinAFConfig(GPIOG, GPIO_PinSource14, GPIO_AF_ETH);
+
+
+    /*MDIO:PA2 , OSCIN:PA1 , CRS:PA7*/
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2| GPIO_Pin_1| GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    
+    /*MDC:PC1 , RX0:PC4 , RX1:PC5*/
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1| GPIO_Pin_4| GPIO_Pin_5;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    /*TX_EN:PG11 , TX_0:PG13 , TX_1:PG14*/
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11| GPIO_Pin_13| GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOG, &GPIO_InitStructure);
+
+}
+
 /**
  *******************************************************************************
  * @brief      Initial LED pins.

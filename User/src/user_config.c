@@ -12,6 +12,13 @@
 #include "stm32f4xx_conf.h"
 #include "nrf24l01.h"
 #include "user_config.h"
+#include "stm32f4x7_eth.h"
+
+
+extern ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */
+extern ETH_DMADESCTypeDef  DMATxDscrTab[ETH_TXBUFNB];/* Ethernet Tx DMA Descriptor */
+extern uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE]; /* Ethernet Receive Buffer */
+extern uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE];
 
 /**
  *******************************************************************************
@@ -57,52 +64,7 @@ void UART_Init(void)
 }		
 
 
-void ETH_GpioInit(void)
-{
-    GPIO_InitTypeDef  GPIO_InitStructure;
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG | RCC_AHB1Periph_GPIOC , ENABLE);
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-    /*MAC和PHY之間使用RMII街口*/
-    SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII);
-
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOG, GPIO_PinSource11, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOG, GPIO_PinSource13, GPIO_AF_ETH);
-    GPIO_PinAFConfig(GPIOG, GPIO_PinSource14, GPIO_AF_ETH);
-
-
-    /*MDIO:PA2 , OSCIN:PA1 , CRS:PA7*/
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2| GPIO_Pin_1| GPIO_Pin_7;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-    
-    /*MDC:PC1 , RX0:PC4 , RX1:PC5*/
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1| GPIO_Pin_4| GPIO_Pin_5;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
-    /*TX_EN:PG11 , TX_0:PG13 , TX_1:PG14*/
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11| GPIO_Pin_13| GPIO_Pin_14;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOG, &GPIO_InitStructure);
-
-}
 
 /**
  *******************************************************************************
@@ -357,4 +319,35 @@ int debugs(const char *fmt,...)
 #else
     return -1;
 #endif
+}
+
+
+void ETH_NVIC_Config(void) {
+    NVIC_InitTypeDef   NVIC_InitStructure;
+ 
+    /* Enable the Ethernet global Interrupt */
+    NVIC_InitStructure.NVIC_IRQChannel = ETH_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+void DP83848Init(uint8_t* HWADDR){
+    int i;
+    /* Configure ethernet (GPIOs, clocks, MAC, DMA) */
+    ETH_BSP_Config();
+ 
+    /* initialize MAC address in ethernet MAC */
+    ETH_MACAddressConfig(ETH_MAC_Address0, HWADDR);
+    /* Initialize Tx Descriptors list: Chain Mode */
+    ETH_DMATxDescChainInit(DMATxDscrTab, &Tx_Buff[0][0], ETH_TXBUFNB);
+    /* Initialize Rx Descriptors list: Chain Mode  */
+    ETH_DMARxDescChainInit(DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
+ 
+    /* Enable the TCP, UDP and ICMP checksum insertion for the Tx frames */
+    for(i = 0; i < ETH_TXBUFNB; i++) {
+        ETH_DMATxDescChecksumInsertionConfig(&DMATxDscrTab[i], ETH_DMATxDesc_ChecksumTCPUDPICMPFull);
+    }
+    ETH_Start();
 }

@@ -59,7 +59,7 @@ all: main.bin
 
 obj:
 	$(MAKE) all -C System
-	@echo $(YELLOW)"Build user files..."$(RST)
+	@echo $(YELLOW)"Build System files..."$(RST)
 	$(MAKE) all -C User
 	@echo $(GREEN)"Finish building user files."$(RST)
 	$(MAKE) all -C CoOS

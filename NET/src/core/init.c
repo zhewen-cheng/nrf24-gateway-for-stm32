@@ -225,8 +225,7 @@ lwip_sanity_check(void)
 /**
  * Perform Sanity check of user-configurable values, and initialize all modules.
  */
-void
-lwip_init(void)
+void lwip_init(void)
 {
   /* Sanity check user-configurable values */
   lwip_sanity_check();

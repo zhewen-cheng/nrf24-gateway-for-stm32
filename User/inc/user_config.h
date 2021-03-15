@@ -36,6 +36,8 @@ void ETH_GpioInit(void);
 void LED_Init(void);
 void Button_Init(void);
 void Delay_Init(void);
+void DP83848Init(uint8_t* HWADDR);
+void ETH_NVIC_Config(void);
 
 /* printf */
 int debugs(const char *str,...);

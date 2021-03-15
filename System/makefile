@@ -11,9 +11,9 @@ all:
 	$(MAKE) all -C NRF24
 	@echo $(GREEN)"Finish building NRF24."$(RST)
 	@echo ""
-    #@echo $(YELLOW)"Build ETH..."$(RST)
-	#$(MAKE) all -C ETH
-	#@echo $(GREEN)"Finish building ETH."$(RST)
+	@echo $(YELLOW)"Build ETH..."$(RST)
+	$(MAKE) all -C ETH
+	@echo $(GREEN)"Finish building ETH."$(RST)
 	@echo ""
 
 clean:

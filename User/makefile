@@ -6,7 +6,22 @@ INCFLAG =\
 -I../System/NRF24/inc \
 -I../System/ETH/inc \
 -I../CoOS/inc \
--I../NET/inc
+-I../NET/inc/ipv4/lwip \
+-I../NET/inc/lwip \
+-I../NET/inc/netif \
+-I../NET/inc/arch	\
+-I../NET/inc/ipv4 \
+-I../NET/inc/ipv6 \
+-I../NET/inc/posix/sys \
+-I../NET/inc/posix \
+-I../NET/inc \
+-I../NET/inc/port	\
+-I../NET/inc/app
+
+
+
+
+
 
 
 

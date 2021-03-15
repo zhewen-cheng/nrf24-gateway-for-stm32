@@ -11,7 +11,12 @@ INCFLAG =\
 -Iinc/posix/sys \
 -Iinc/posix \
 -I../CoOS/inc \
--I../System/CMSIS/inc
+-I../System/CMSIS/inc \
+-Iinc/port \
+-I../System/ETH/inc \
+-I../System/STM32/inc \
+-Iinc/app \
+
 
 CFLAGS += $(INCFLAG)
 
@@ -30,6 +35,8 @@ $(OBJDIR)/core/snmp \
 $(OBJDIR)/netif \
 $(OBJDIR)/netif/ppp \
 $(OBJDIR)/arch \
+$(OBJDIR)/port \
+$(OBJDIR)/app \
 
 
 all: $(SUBOBJDIR) $(OBJS)	 

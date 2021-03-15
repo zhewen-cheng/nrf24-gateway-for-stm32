@@ -1,36 +1,43 @@
 /**
   ******************************************************************************
-  * @file    stm32_eth.h
+  * @file    stm32f4x7_eth.h
   * @author  MCD Application Team
   * @version V1.1.0
-  * @date    11/20/2009
+  * @date    31-July-2013
   * @brief   This file contains all the functions prototypes for the Ethernet
-  *          firmware library.
+  *          firmware driver.
   ******************************************************************************
-  * @copy
+  * @attention
   *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
+  * <h2><center>&copy; COPYRIGHT 2013 STMicroelectronics</center></h2>
   *
-  * <h2><center>&copy; COPYRIGHT 2009 STMicroelectronics</center></h2>
-  */ 
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  ******************************************************************************
+  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32_ETH_H
-#define __STM32_ETH_H
+#ifndef __STM32F4x7_ETH_H
+#define __STM32F4x7_ETH_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+#include "stm32f4x7_eth_conf.h"
 
-/** @addtogroup STM32_ETH_Driver
+/** @addtogroup STM32F4x7_ETH_Driver
   * @{
   */
 
@@ -41,7 +48,7 @@
 /** 
   * @brief  ETH MAC Init structure definition
   * @note   The user should not configure all the ETH_InitTypeDef structure's fields. 
-  *   By calling the ETH_StructInit function the structures fields are set to their default values.
+  *   By calling the ETH_StructInit function the structure�s fields are set to their default values.
   *   Only the parameters that will be set to a non-default value should be configured.  
   */ 
 typedef struct {
@@ -87,7 +94,7 @@ typedef struct {
                                                            This parameter can be a value of @ref ETH_Checksum_Offload */    
 
   uint32_t             ETH_RetryTransmission;         /*!< Selects or not the MAC attempt retries transmission, based on the settings of BL,
-                                                           when a colision occurs (Half-Duplex mode)
+                                                           when a collision occurs (Half-Duplex mode)
                                                            This parameter can be a value of @ref ETH_Retry_Transmission */
 
   uint32_t             ETH_AutomaticPadCRCStrip;      /*!< Selects or not the Automatic MAC Pad/CRC Stripping
@@ -99,7 +106,7 @@ typedef struct {
   uint32_t             ETH_DeferralCheck;             /*!< Selects or not the deferral check function (Half-Duplex mode)
                                                            This parameter can be a value of @ref ETH_Deferral_Check */                                                                                                        
 
-  uint32_t             ETH_ReceiveAll;                /*!< Selects or not all frames reception by the MAC (No fitering)
+  uint32_t             ETH_ReceiveAll;                /*!< Selects or not all frames reception by the MAC (No filtering)
                                                            This parameter can be a value of @ref ETH_Receive_All */   
 
   uint32_t             ETH_SourceAddrFilter;          /*!< Selects the Source Address Filter mode                                                           
@@ -197,7 +204,7 @@ typedef struct {
   uint32_t             ETH_RxDMABurstLength;            /*!< Indicates the maximum number of beats to be transferred in one Rx DMA transaction
                                                              This parameter can be a value of @ref ETH_Rx_DMA_Burst_Length */ 
 
-  uint32_t             ETH_TxDMABurstLength;            /*!< Indicates sthe maximum number of beats to be transferred in one Tx DMA transaction
+  uint32_t             ETH_TxDMABurstLength;            /*!< Indicates the maximum number of beats to be transferred in one Tx DMA transaction
                                                              This parameter can be a value of @ref ETH_Tx_DMA_Burst_Length */                                                   
 
   uint32_t             ETH_DescriptorSkipLength;        /*!< Specifies the number of word to skip between two unchained descriptors (Ring mode) */                                                             
@@ -213,14 +220,36 @@ typedef struct {
 /**--------------------------------------------------------------------------**/
 
 /** 
-  * @brief  ETH DMA Desciptors data structure definition
+  * @brief  ETH DMA Descriptors data structure definition
   */ 
 typedef struct  {
-  uint32_t   Status;                /*!< Status */
+  __IO uint32_t   Status;                /*!< Status */
   uint32_t   ControlBufferSize;     /*!< Control and Buffer1, Buffer2 lengths */
   uint32_t   Buffer1Addr;           /*!< Buffer1 address pointer */
   uint32_t   Buffer2NextDescAddr;   /*!< Buffer2 or next descriptor address pointer */
+/* Enhanced ETHERNET DMA PTP Descriptors */
+#ifdef USE_ENHANCED_DMA_DESCRIPTORS
+  uint32_t   ExtendedStatus;        /* Extended status for PTP receive descriptor */
+  uint32_t   Reserved1;             /* Reserved */
+  uint32_t   TimeStampLow;          /* Time Stamp Low value for transmit and receive */
+  uint32_t   TimeStampHigh;         /* Time Stamp High value for transmit and receive */
+#endif /* USE_ENHANCED_DMA_DESCRIPTORS */
 } ETH_DMADESCTypeDef;
+
+
+typedef struct{
+  u32 length;
+  u32 buffer;
+  __IO ETH_DMADESCTypeDef *descriptor;
+}FrameTypeDef;
+
+
+typedef struct  {
+  __IO ETH_DMADESCTypeDef *FS_Rx_Desc;          /*!< First Segment Rx Desc */
+  __IO ETH_DMADESCTypeDef *LS_Rx_Desc;          /*!< Last Segment Rx Desc */
+  __IO uint32_t  Seg_Count;                     /*!< Segment count */
+} ETH_DMA_Rx_Frame_infos;
+  
 
 /**
   * @}
@@ -229,21 +258,7 @@ typedef struct  {
 /** @defgroup ETH_Exported_Constants
   * @{
   */ 
-
-/**
- * @brief Uncomment the line below if you want to use user defined Delay function
- *        (for precise timing), otherwise default _eth_delay_ function defined within
- *        this driver is used (less precise timing).  
- */
-/* #define USE_Delay */
-
-#ifdef USE_Delay
-#include "main.h" 
-  #define _eth_delay_    Delay     /*!< User can provide more timing precise _eth_delay_ function */
-#else
-  #define _eth_delay_    ETH_Delay /*!< Default _eth_delay_ function with less precise timing */
-#endif  
-  
+ 
 /**--------------------------------------------------------------------------**/
 /** 
   * @brief                          ETH Frames defines
@@ -253,7 +268,7 @@ typedef struct  {
 /** @defgroup ENET_Buffers_setting 
   * @{
   */ 
-#define ETH_MAX_PACKET_SIZE    1520    /*!< ETH_HEADER + ETH_EXTRA + MAX_ETH_PAYLOAD + ETH_CRC */
+#define ETH_MAX_PACKET_SIZE    1524    /*!< ETH_HEADER + ETH_EXTRA + VLAN_TAG + MAX_ETH_PAYLOAD + ETH_CRC */
 #define ETH_HEADER               14    /*!< 6 byte Dest addr, 6 byte Src addr, 2 byte length/type */
 #define ETH_CRC                   4    /*!< Ethernet CRC */
 #define ETH_EXTRA                 2    /*!< Extra bytes in some cases */   
@@ -261,6 +276,61 @@ typedef struct  {
 #define MIN_ETH_PAYLOAD          46    /*!< Minimum Ethernet payload size */
 #define MAX_ETH_PAYLOAD        1500    /*!< Maximum Ethernet payload size */
 #define JUMBO_FRAME_PAYLOAD    9000    /*!< Jumbo frame payload size */      
+
+ /* Ethernet driver receive buffers are organized in a chained linked-list, when
+    an ethernet packet is received, the Rx-DMA will transfer the packet from RxFIFO
+    to the driver receive buffers memory.
+    
+    Depending on the size of the received ethernet packet and the size of 
+    each ethernet driver receive buffer, the received packet can take one or more
+    ethernet driver receive buffer. 
+    
+    In below are defined the size of one ethernet driver receive buffer ETH_RX_BUF_SIZE 
+    and the total count of the driver receive buffers ETH_RXBUFNB.
+    
+    The configured value for ETH_RX_BUF_SIZE and ETH_RXBUFNB are only provided as 
+    example, they can be reconfigured in the application layer to fit the application 
+    needs */ 
+   
+/* Here we configure each Ethernet driver receive buffer to fit the Max size Ethernet
+   packet */    
+#ifndef ETH_RX_BUF_SIZE
+ #define ETH_RX_BUF_SIZE         ETH_MAX_PACKET_SIZE 
+#endif
+
+/* 5 Ethernet driver receive buffers are used (in a chained linked list)*/ 
+#ifndef ETH_RXBUFNB
+ #define ETH_RXBUFNB             5     /*  5 Rx buffers of size ETH_RX_BUF_SIZE */
+#endif
+
+
+ /* Ethernet driver transmit buffers are organized in a chained linked-list, when
+    an ethernet packet is transmitted, Tx-DMA will transfer the packet from the 
+    driver transmit buffers memory to the TxFIFO.
+    
+    Depending on the size of the Ethernet packet to be transmitted and the size of 
+    each ethernet driver transmit buffer, the packet to be transmitted can take 
+    one or more ethernet driver transmit buffer. 
+    
+    In below are defined the size of one ethernet driver transmit buffer ETH_TX_BUF_SIZE 
+    and the total count of the driver transmit buffers ETH_TXBUFNB.
+    
+    The configured value for ETH_TX_BUF_SIZE and ETH_TXBUFNB are only provided as 
+    example, they can be reconfigured in the application layer to fit the application 
+    needs */ 
+   
+/* Here we configure each Ethernet driver transmit buffer to fit the Max size Ethernet
+   packet */  
+#ifndef ETH_TX_BUF_SIZE 
+ #define ETH_TX_BUF_SIZE         ETH_MAX_PACKET_SIZE
+#endif
+
+/* 5 ethernet driver transmit buffers are used (in a chained linked list)*/ 
+#ifndef ETH_TXBUFNB
+ #define ETH_TXBUFNB             5      /* 5  Tx buffers of size ETH_TX_BUF_SIZE */
+#endif
+
+#define  ETH_DMARxDesc_FrameLengthShift           16
 
 /**--------------------------------------------------------------------------**/
 /** 
@@ -278,7 +348,7 @@ typedef struct  {
   -----------------------------------------------------------------------------------------------
   TDES2 |                         Buffer1 Address [31:0]                                         |
   -----------------------------------------------------------------------------------------------
-  TDES3 |                   Buffer2 Address [31:0] / Next Desciptor Address [31:0]               |
+  TDES3 |                   Buffer2 Address [31:0] / Next Descriptor Address [31:0]              |
   -----------------------------------------------------------------------------------------------
 @endcode
 */
@@ -306,8 +376,8 @@ typedef struct  {
 #define ETH_DMATxDesc_JT                      ((uint32_t)0x00004000)  /*!< Jabber Timeout */
 #define ETH_DMATxDesc_FF                      ((uint32_t)0x00002000)  /*!< Frame Flushed: DMA/MTL flushed the frame due to SW flush */
 #define ETH_DMATxDesc_PCE                     ((uint32_t)0x00001000)  /*!< Payload Checksum Error */
-#define ETH_DMATxDesc_LCA                     ((uint32_t)0x00000800)  /*!< Loss of Carrier: carrier lost during tramsmission */
-#define ETH_DMATxDesc_NC                      ((uint32_t)0x00000400)  /*!< No Carrier: no carrier signal from the tranceiver */
+#define ETH_DMATxDesc_LCA                     ((uint32_t)0x00000800)  /*!< Loss of Carrier: carrier lost during transmission */
+#define ETH_DMATxDesc_NC                      ((uint32_t)0x00000400)  /*!< No Carrier: no carrier signal from the transceiver */
 #define ETH_DMATxDesc_LCO                     ((uint32_t)0x00000200)  /*!< Late Collision: transmission aborted due to collision */
 #define ETH_DMATxDesc_EC                      ((uint32_t)0x00000100)  /*!< Excessive Collision: transmission aborted after 16 collisions */
 #define ETH_DMATxDesc_VF                      ((uint32_t)0x00000080)  /*!< VLAN Frame */
@@ -332,6 +402,18 @@ typedef struct  {
   */ 
 #define ETH_DMATxDesc_B2AP  ((uint32_t)0xFFFFFFFF)  /*!< Buffer2 Address Pointer */
 
+  /*---------------------------------------------------------------------------------------------
+  TDES6 |                         Transmit Time Stamp Low [31:0]                                 |
+  -----------------------------------------------------------------------------------------------
+  TDES7 |                         Transmit Time Stamp High [31:0]                                |
+  ----------------------------------------------------------------------------------------------*/
+
+/* Bit definition of TDES6 register */
+ #define ETH_DMAPTPTxDesc_TTSL  ((uint32_t)0xFFFFFFFF)  /* Transmit Time Stamp Low */
+
+/* Bit definition of TDES7 register */
+ #define ETH_DMAPTPTxDesc_TTSH  ((uint32_t)0xFFFFFFFF)  /* Transmit Time Stamp High */
+
 /**
   * @}
   */ 
@@ -343,7 +425,7 @@ typedef struct  {
 
 /**
 @code 
-  DMA Rx Desciptor
+  DMA Rx Descriptor
   --------------------------------------------------------------------------------------------------------------------
   RDES0 | OWN(31) |                                             Status [30:0]                                          |
   ---------------------------------------------------------------------------------------------------------------------
@@ -351,7 +433,7 @@ typedef struct  {
   ---------------------------------------------------------------------------------------------------------------------
   RDES2 |                                       Buffer1 Address [31:0]                                                 |
   ---------------------------------------------------------------------------------------------------------------------
-  RDES3 |                          Buffer2 Address [31:0] / Next Desciptor Address [31:0]                              |
+  RDES3 |                          Buffer2 Address [31:0] / Next Descriptor Address [31:0]                             |
   ---------------------------------------------------------------------------------------------------------------------
 @endcode
 */
@@ -363,7 +445,7 @@ typedef struct  {
 #define ETH_DMARxDesc_AFM         ((uint32_t)0x40000000)  /*!< DA Filter Fail for the rx frame  */
 #define ETH_DMARxDesc_FL          ((uint32_t)0x3FFF0000)  /*!< Receive descriptor frame length  */
 #define ETH_DMARxDesc_ES          ((uint32_t)0x00008000)  /*!< Error summary: OR of the following bits: DE || OE || IPC || LC || RWT || RE || CE */
-#define ETH_DMARxDesc_DE          ((uint32_t)0x00004000)  /*!< Desciptor error: no more descriptors for receive frame  */
+#define ETH_DMARxDesc_DE          ((uint32_t)0x00004000)  /*!< Descriptor error: no more descriptors for receive frame  */
 #define ETH_DMARxDesc_SAF         ((uint32_t)0x00002000)  /*!< SA Filter Fail for the received frame */
 #define ETH_DMARxDesc_LE          ((uint32_t)0x00001000)  /*!< Frame size not matching with length field */
 #define ETH_DMARxDesc_OE          ((uint32_t)0x00000800)  /*!< Overflow Error: Frame was damaged due to buffer overflow */
@@ -398,9 +480,47 @@ typedef struct  {
   */ 
 #define ETH_DMARxDesc_B2AP  ((uint32_t)0xFFFFFFFF)  /*!< Buffer2 Address Pointer */
 
+/*---------------------------------------------------------------------------------------------------------------------
+  RDES4 |                   Reserved[31:15]              |             Extended Status [14:0]                          |
+  ---------------------------------------------------------------------------------------------------------------------
+  RDES5 |                                            Reserved[31:0]                                                    |
+  ---------------------------------------------------------------------------------------------------------------------
+  RDES6 |                                       Receive Time Stamp Low [31:0]                                          |
+  ---------------------------------------------------------------------------------------------------------------------
+  RDES7 |                                       Receive Time Stamp High [31:0]                                         |
+  --------------------------------------------------------------------------------------------------------------------*/
+
+/* Bit definition of RDES4 register */
+#define ETH_DMAPTPRxDesc_PTPV     ((uint32_t)0x00002000)  /* PTP Version */
+#define ETH_DMAPTPRxDesc_PTPFT    ((uint32_t)0x00001000)  /* PTP Frame Type */
+#define ETH_DMAPTPRxDesc_PTPMT    ((uint32_t)0x00000F00)  /* PTP Message Type */
+  #define ETH_DMAPTPRxDesc_PTPMT_Sync                      ((uint32_t)0x00000100)  /* SYNC message (all clock types) */
+  #define ETH_DMAPTPRxDesc_PTPMT_FollowUp                  ((uint32_t)0x00000200)  /* FollowUp message (all clock types) */ 
+  #define ETH_DMAPTPRxDesc_PTPMT_DelayReq                  ((uint32_t)0x00000300)  /* DelayReq message (all clock types) */ 
+  #define ETH_DMAPTPRxDesc_PTPMT_DelayResp                 ((uint32_t)0x00000400)  /* DelayResp message (all clock types) */ 
+  #define ETH_DMAPTPRxDesc_PTPMT_PdelayReq_Announce        ((uint32_t)0x00000500)  /* PdelayReq message (peer-to-peer transparent clock) or Announce message (Ordinary or Boundary clock) */ 
+  #define ETH_DMAPTPRxDesc_PTPMT_PdelayResp_Manag          ((uint32_t)0x00000600)  /* PdelayResp message (peer-to-peer transparent clock) or Management message (Ordinary or Boundary clock)  */ 
+  #define ETH_DMAPTPRxDesc_PTPMT_PdelayRespFollowUp_Signal ((uint32_t)0x00000700)  /* PdelayRespFollowUp message (peer-to-peer transparent clock) or Signaling message (Ordinary or Boundary clock) */           
+#define ETH_DMAPTPRxDesc_IPV6PR   ((uint32_t)0x00000080)  /* IPv6 Packet Received */
+#define ETH_DMAPTPRxDesc_IPV4PR   ((uint32_t)0x00000040)  /* IPv4 Packet Received */
+#define ETH_DMAPTPRxDesc_IPCB  ((uint32_t)0x00000020)  /* IP Checksum Bypassed */
+#define ETH_DMAPTPRxDesc_IPPE  ((uint32_t)0x00000010)  /* IP Payload Error */
+#define ETH_DMAPTPRxDesc_IPHE  ((uint32_t)0x00000008)  /* IP Header Error */
+#define ETH_DMAPTPRxDesc_IPPT  ((uint32_t)0x00000007)  /* IP Payload Type */
+  #define ETH_DMAPTPRxDesc_IPPT_UDP                 ((uint32_t)0x00000001)  /* UDP payload encapsulated in the IP datagram */
+  #define ETH_DMAPTPRxDesc_IPPT_TCP                 ((uint32_t)0x00000002)  /* TCP payload encapsulated in the IP datagram */ 
+  #define ETH_DMAPTPRxDesc_IPPT_ICMP                ((uint32_t)0x00000003)  /* ICMP payload encapsulated in the IP datagram */
+
+/* Bit definition of RDES6 register */
+#define ETH_DMAPTPRxDesc_RTSL  ((uint32_t)0xFFFFFFFF)  /* Receive Time Stamp Low */
+
+/* Bit definition of RDES7 register */
+#define ETH_DMAPTPRxDesc_RTSH  ((uint32_t)0xFFFFFFFF)  /* Receive Time Stamp High */
+
+
 /**--------------------------------------------------------------------------**/
 /** 
-  * @brief                     Desciption of common PHY registers
+  * @brief                     Description of common PHY registers
   */ 
 /**--------------------------------------------------------------------------**/
 
@@ -418,30 +538,16 @@ typedef struct  {
   * @}
   */
 
-/** @defgroup PHY_Reset_Delay 
-  * @{
-  */ 
-#define PHY_ResetDelay                  ((uint32_t)0x000FFFFF) 
-
-/**
-  * @}
-  */
-
-/** @defgroup PHY_Config_Delay 
-  * @{
-  */ 
-#define PHY_ConfigDelay                 ((uint32_t)0x00FFFFFF)
-
-/**
-  * @}
-  */
-
 /** @defgroup PHY_Register_address 
   * @{
   */ 
-#define PHY_BCR                          0          /*!< Tranceiver Basic Control Register */
-#define PHY_BSR                          1          /*!< Tranceiver Basic Status Register */
+#define PHY_BCR                          0          /*!< Transceiver Basic Control Register */
+#define PHY_BSR                          1          /*!< Transceiver Basic Status Register */
 
+#define IS_ETH_PHY_ADDRESS(ADDRESS) ((ADDRESS) <= 0x20)
+#define IS_ETH_PHY_REG(REG) (((REG) == PHY_BCR) || \
+                             ((REG) == PHY_BSR) || \
+                             ((REG) == PHY_SR))
 /**
   * @}
   */
@@ -449,16 +555,16 @@ typedef struct  {
 /** @defgroup PHY_basic_Control_register 
   * @{
   */ 
-#define PHY_Reset                       ((u16)0x8000)      /*!< PHY Reset */
-#define PHY_Loopback                    ((u16)0x4000)      /*!< Select loop-back mode */
-#define PHY_FULLDUPLEX_100M             ((u16)0x2100)      /*!< Set the full-duplex mode at 100 Mb/s */
-#define PHY_HALFDUPLEX_100M             ((u16)0x2000)      /*!< Set the half-duplex mode at 100 Mb/s */
-#define PHY_FULLDUPLEX_10M              ((u16)0x0100)      /*!< Set the full-duplex mode at 10 Mb/s */
-#define PHY_HALFDUPLEX_10M              ((u16)0x0000)      /*!< Set the half-duplex mode at 10 Mb/s */
-#define PHY_AutoNegotiation             ((u16)0x1000)      /*!< Enable auto-negotiation function */
-#define PHY_Restart_AutoNegotiation     ((u16)0x0200)      /*!< Restart auto-negotiation function */
-#define PHY_Powerdown                   ((u16)0x0800)      /*!< Select the power down mode */
-#define PHY_Isolate                     ((u16)0x0400)      /*!< Isolate PHY from MII */
+#define PHY_Reset                       ((uint16_t)0x8000)      /*!< PHY Reset */
+#define PHY_Loopback                    ((uint16_t)0x4000)      /*!< Select loop-back mode */
+#define PHY_FULLDUPLEX_100M             ((uint16_t)0x2100)      /*!< Set the full-duplex mode at 100 Mb/s */
+#define PHY_HALFDUPLEX_100M             ((uint16_t)0x2000)      /*!< Set the half-duplex mode at 100 Mb/s */
+#define PHY_FULLDUPLEX_10M              ((uint16_t)0x0100)      /*!< Set the full-duplex mode at 10 Mb/s */
+#define PHY_HALFDUPLEX_10M              ((uint16_t)0x0000)      /*!< Set the half-duplex mode at 10 Mb/s */
+#define PHY_AutoNegotiation             ((uint16_t)0x1000)      /*!< Enable auto-negotiation function */
+#define PHY_Restart_AutoNegotiation     ((uint16_t)0x0200)      /*!< Restart auto-negotiation function */
+#define PHY_Powerdown                   ((uint16_t)0x0800)      /*!< Select the power down mode */
+#define PHY_Isolate                     ((uint16_t)0x0400)      /*!< Isolate PHY from MII */
 
 /**
   * @}
@@ -467,55 +573,19 @@ typedef struct  {
 /** @defgroup PHY_basic_status_register 
   * @{
   */ 
-#define PHY_AutoNego_Complete           ((u16)0x0020)      /*!< Auto-Negotioation process completed */
-#define PHY_Linked_Status               ((u16)0x0004)      /*!< Valid link established */
-#define PHY_Jabber_detection            ((u16)0x0002)      /*!< Jabber condition detected */
+#define PHY_AutoNego_Complete           ((uint16_t)0x0020)      /*!< Auto-Negotiation process completed */
+#define PHY_Linked_Status               ((uint16_t)0x0004)      /*!< Valid link established */
+#define PHY_Jabber_detection            ((uint16_t)0x0002)      /*!< Jabber condition detected */
 
 /**
   * @}
   */
-
-/** @defgroup PHY_status_register 
-  * @{
-  */ 
-/* The PHY status register value change from a PHY to another so the user have 
-   to update this value depending on the used external PHY */
-/** 
-  * @brief  For LAN8700  
-  */ 
-//#define PHY_SR                           31         /*!< Tranceiver Status Register */
-/** 
-  * @brief  For DP83848  
-  */ 
-#define PHY_SR                           16     /*!< Tranceiver Status Register */
-
-/* The Speed and Duplex mask values change from a PHY to another so the user have to update
-   this value depending on the used external PHY */
-/** 
-  * @brief  For LAN8700  
-  */ 
-//#define PHY_Speed_Status            ((u16)0x0004)       /*!< Configured information of Speed: 10Mbps */
-//#define PHY_Duplex_Status           ((u16)0x0010)       /*!< Configured information of Duplex: Full-duplex */
-
-/** 
-  * @brief  For DP83848  
-  */ 
-#define PHY_Speed_Status            ((u16)0x0002)    /*!< Configured information of Speed: 10Mbps */
-#define PHY_Duplex_Status           ((u16)0x0004)    /*!< Configured information of Duplex: Full-duplex */
-#define IS_ETH_PHY_ADDRESS(ADDRESS) ((ADDRESS) <= 0x20)
-#define IS_ETH_PHY_REG(REG) (((REG) == PHY_BCR) || \
-                             ((REG) == PHY_BSR) || \
-                             ((REG) == PHY_SR))
 
 /**--------------------------------------------------------------------------**/
 /** 
   * @brief                                  MAC defines
   */ 
 /**--------------------------------------------------------------------------**/
-
-/**
-  * @}
-  */ 
 
 /** @defgroup ETH_AutoNegotiation 
   * @{
@@ -971,7 +1041,7 @@ typedef struct  {
 
 /**--------------------------------------------------------------------------**/
 /** 
-  * @brief                      Ethernet DMA Desciptors defines
+  * @brief                      Ethernet DMA Descriptors defines
   */ 
 /**--------------------------------------------------------------------------**/
 /**
@@ -1063,6 +1133,17 @@ typedef struct  {
                                          ((FLAG) == ETH_DMARxDesc_DBE) || \
                                          ((FLAG) == ETH_DMARxDesc_CE) || \
                                          ((FLAG) == ETH_DMARxDesc_MAMPCE))
+
+/* ETHERNET DMA PTP Rx descriptor extended flags  --------------------------------*/
+#define IS_ETH_DMAPTPRxDESC_GET_EXTENDED_FLAG(FLAG) (((FLAG) == ETH_DMAPTPRxDesc_PTPV) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_PTPFT) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_PTPMT) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPV6PR) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPV4PR) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPCB) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPPE) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPHE) || \
+                                                     ((FLAG) == ETH_DMAPTPRxDesc_IPPT))
 
 /**
   * @}
@@ -1241,6 +1322,7 @@ typedef struct  {
 #define ETH_RxDMABurstLength_4xPBL_32Beat   ((uint32_t)0x01100000)  /*!< maximum number of beats to be transferred in one RxDMA transaction is 32 */
 #define ETH_RxDMABurstLength_4xPBL_64Beat   ((uint32_t)0x01200000)  /*!< maximum number of beats to be transferred in one RxDMA transaction is 64 */
 #define ETH_RxDMABurstLength_4xPBL_128Beat  ((uint32_t)0x01400000)  /*!< maximum number of beats to be transferred in one RxDMA transaction is 128 */
+
 #define IS_ETH_RXDMA_BURST_LENGTH(LENGTH) (((LENGTH) == ETH_RxDMABurstLength_1Beat) || \
                                            ((LENGTH) == ETH_RxDMABurstLength_2Beat) || \
                                            ((LENGTH) == ETH_RxDMABurstLength_4Beat) || \
@@ -1273,6 +1355,7 @@ typedef struct  {
 #define ETH_TxDMABurstLength_4xPBL_32Beat   ((uint32_t)0x01000800)  /*!< maximum number of beats to be transferred in one TxDMA (or both) transaction is 32 */
 #define ETH_TxDMABurstLength_4xPBL_64Beat   ((uint32_t)0x01001000)  /*!< maximum number of beats to be transferred in one TxDMA (or both) transaction is 64 */
 #define ETH_TxDMABurstLength_4xPBL_128Beat  ((uint32_t)0x01002000)  /*!< maximum number of beats to be transferred in one TxDMA (or both) transaction is 128 */
+
 #define IS_ETH_TXDMA_BURST_LENGTH(LENGTH) (((LENGTH) == ETH_TxDMABurstLength_1Beat) || \
                                            ((LENGTH) == ETH_TxDMABurstLength_2Beat) || \
                                            ((LENGTH) == ETH_TxDMABurstLength_4Beat) || \
@@ -1286,7 +1369,7 @@ typedef struct  {
                                            ((LENGTH) == ETH_TxDMABurstLength_4xPBL_64Beat) || \
                                            ((LENGTH) == ETH_TxDMABurstLength_4xPBL_128Beat))
 /** 
-  * @brief  ETH DMA Desciptor SkipLength  
+  * @brief  ETH DMA Descriptor SkipLength  
   */ 
 #define IS_ETH_DMA_DESC_SKIP_LENGTH(LENGTH) ((LENGTH) <= 0x1F)
 
@@ -1396,7 +1479,7 @@ typedef struct  {
 #define ETH_DMA_TransmitProcess_Fetching    ((uint32_t)0x00100000)  /*!< Running - fetching the Tx descriptor */
 #define ETH_DMA_TransmitProcess_Waiting     ((uint32_t)0x00200000)  /*!< Running - waiting for status */
 #define ETH_DMA_TransmitProcess_Reading     ((uint32_t)0x00300000)  /*!< Running - reading the data from host memory */
-#define ETH_DMA_TransmitProcess_Suspended   ((uint32_t)0x00600000)  /*!< Suspended - Tx Desciptor unavailabe */
+#define ETH_DMA_TransmitProcess_Suspended   ((uint32_t)0x00600000)  /*!< Suspended - Tx Descriptor unavailable */
 #define ETH_DMA_TransmitProcess_Closing     ((uint32_t)0x00700000)  /*!< Running - closing Rx descriptor */
 
 /**
@@ -1410,9 +1493,9 @@ typedef struct  {
 #define ETH_DMA_ReceiveProcess_Stopped      ((uint32_t)0x00000000)  /*!< Stopped - Reset or Stop Rx Command issued */
 #define ETH_DMA_ReceiveProcess_Fetching     ((uint32_t)0x00020000)  /*!< Running - fetching the Rx descriptor */
 #define ETH_DMA_ReceiveProcess_Waiting      ((uint32_t)0x00060000)  /*!< Running - waiting for packet */
-#define ETH_DMA_ReceiveProcess_Suspended    ((uint32_t)0x00080000)  /*!< Suspended - Rx Desciptor unavailable */
+#define ETH_DMA_ReceiveProcess_Suspended    ((uint32_t)0x00080000)  /*!< Suspended - Rx Descriptor unavailable */
 #define ETH_DMA_ReceiveProcess_Closing      ((uint32_t)0x000A0000)  /*!< Running - closing descriptor */
-#define ETH_DMA_ReceiveProcess_Queuing      ((uint32_t)0x000E0000)  /*!< Running - queuing the recieve frame into host memory */
+#define ETH_DMA_ReceiveProcess_Queuing      ((uint32_t)0x000E0000)  /*!< Running - queuing the receive frame into host memory */
 
 /**
   * @}
@@ -1438,7 +1521,7 @@ typedef struct  {
 /** @defgroup ETH_PMT_Flags 
   * @{
   */ 
-#define ETH_PMT_FLAG_WUFFRPR      ((uint32_t)0x80000000)  /*!< Wake-Up Frame Filter Register Poniter Reset */
+#define ETH_PMT_FLAG_WUFFRPR      ((uint32_t)0x80000000)  /*!< Wake-Up Frame Filter Register Pointer Reset */
 #define ETH_PMT_FLAG_WUFR         ((uint32_t)0x00000040)  /*!< Wake-Up Frame Received */
 #define ETH_PMT_FLAG_MPR          ((uint32_t)0x00000020)  /*!< Magic Packet Received */
 #define IS_ETH_PMT_GET_FLAG(FLAG) (((FLAG) == ETH_PMT_FLAG_WUFR) || \
@@ -1533,10 +1616,17 @@ typedef struct  {
 #define ETH_PTP_FLAG_TSITE        ((uint32_t)0x00000010)  /*!< Time Stamp Interrupt Trigger */
 #define ETH_PTP_FLAG_TSSTU        ((uint32_t)0x00000008)  /*!< Time Stamp Update */
 #define ETH_PTP_FLAG_TSSTI        ((uint32_t)0x00000004)  /*!< Time Stamp Initialize */
+
+#define ETH_PTP_FLAG_TSTTR        ((uint32_t)0x10000002)  /* Time stamp target time reached */
+#define ETH_PTP_FLAG_TSSO         ((uint32_t)0x10000001)  /* Time stamp seconds overflow */
+
 #define IS_ETH_PTP_GET_FLAG(FLAG) (((FLAG) == ETH_PTP_FLAG_TSARU) || \
-                                   ((FLAG) == ETH_PTP_FLAG_TSITE) || \
-                                   ((FLAG) == ETH_PTP_FLAG_TSSTU) || \
-                                   ((FLAG) == ETH_PTP_FLAG_TSSTI))
+                                    ((FLAG) == ETH_PTP_FLAG_TSITE) || \
+                                    ((FLAG) == ETH_PTP_FLAG_TSSTU) || \
+                                    ((FLAG) == ETH_PTP_FLAG_TSSTI) || \
+                                    ((FLAG) == ETH_PTP_FLAG_TSTTR) || \
+                                    ((FLAG) == ETH_PTP_FLAG_TSSO)) 
+
 /** 
   * @brief  ETH PTP subsecond increment  
   */ 
@@ -1572,16 +1662,86 @@ typedef struct  {
 #define ETH_PTPTSAR     ((uint32_t)0x00000718)  /*!< PTP TSAR register */
 #define ETH_PTPTTHR     ((uint32_t)0x0000071C)  /*!< PTP TTHR register */
 #define ETH_PTPTTLR     ((uint32_t)0x00000720)  /* PTP TTLR register */
+
+#define ETH_PTPTSSR     ((uint32_t)0x00000728)  /* PTP TSSR register */
+
 #define IS_ETH_PTP_REGISTER(REG) (((REG) == ETH_PTPTSCR) || ((REG) == ETH_PTPSSIR) || \
-                                  ((REG) == ETH_PTPTSHR) || ((REG) == ETH_PTPTSLR) || \
-                                  ((REG) == ETH_PTPTSHUR) || ((REG) == ETH_PTPTSLUR) || \
-                                  ((REG) == ETH_PTPTSAR) || ((REG) == ETH_PTPTTHR) || \
-                                  ((REG) == ETH_PTPTTLR)) 
+                                   ((REG) == ETH_PTPTSHR) || ((REG) == ETH_PTPTSLR) || \
+                                   ((REG) == ETH_PTPTSHUR) || ((REG) == ETH_PTPTSLUR) || \
+                                   ((REG) == ETH_PTPTSAR) || ((REG) == ETH_PTPTTHR) || \
+                                   ((REG) == ETH_PTPTTLR) || ((REG) == ETH_PTPTSSR)) 
+
+/** 
+  * @brief  ETHERNET PTP clock  
+  */ 
+#define ETH_PTP_OrdinaryClock               ((uint32_t)0x00000000)  /* Ordinary Clock */
+#define ETH_PTP_BoundaryClock               ((uint32_t)0x00010000)  /* Boundary Clock */
+#define ETH_PTP_EndToEndTransparentClock    ((uint32_t)0x00020000)  /* End To End Transparent Clock */
+#define ETH_PTP_PeerToPeerTransparentClock  ((uint32_t)0x00030000)  /* Peer To Peer Transparent Clock */
+
+#define IS_ETH_PTP_TYPE_CLOCK(CLOCK) (((CLOCK) == ETH_PTP_OrdinaryClock) || \
+                          ((CLOCK) == ETH_PTP_BoundaryClock) || \
+                          ((CLOCK) == ETH_PTP_EndToEndTransparentClock) || \
+                                      ((CLOCK) == ETH_PTP_PeerToPeerTransparentClock))
+/** 
+  * @brief  ETHERNET snapshot
+  */
+#define ETH_PTP_SnapshotMasterMessage          ((uint32_t)0x00008000)  /* Time stamp snapshot for message relevant to master enable */
+#define ETH_PTP_SnapshotEventMessage           ((uint32_t)0x00004000)  /* Time stamp snapshot for event message enable */
+#define ETH_PTP_SnapshotIPV4Frames             ((uint32_t)0x00002000)  /* Time stamp snapshot for IPv4 frames enable */
+#define ETH_PTP_SnapshotIPV6Frames             ((uint32_t)0x00001000)  /* Time stamp snapshot for IPv6 frames enable */
+#define ETH_PTP_SnapshotPTPOverEthernetFrames  ((uint32_t)0x00000800)  /* Time stamp snapshot for PTP over ethernet frames enable */
+#define ETH_PTP_SnapshotAllReceivedFrames      ((uint32_t)0x00000100)  /* Time stamp snapshot for all received frames enable */
+
+#define IS_ETH_PTP_SNAPSHOT(SNAPSHOT) (((SNAPSHOT) == ETH_PTP_SnapshotMasterMessage) || \
+                           ((SNAPSHOT) == ETH_PTP_SnapshotEventMessage) || \
+                           ((SNAPSHOT) == ETH_PTP_SnapshotIPV4Frames) || \
+                           ((SNAPSHOT) == ETH_PTP_SnapshotIPV6Frames) || \
+                           ((SNAPSHOT) == ETH_PTP_SnapshotPTPOverEthernetFrames) || \
+                           ((SNAPSHOT) == ETH_PTP_SnapshotAllReceivedFrames))
 
 /**
   * @}
   */ 
+/* ETHERNET MAC address offsets */
+#define ETH_MAC_ADDR_HBASE   (ETH_MAC_BASE + 0x40)  /* ETHERNET MAC address high offset */
+#define ETH_MAC_ADDR_LBASE    (ETH_MAC_BASE + 0x44)  /* ETHERNET MAC address low offset */
 
+/* ETHERNET MACMIIAR register Mask */
+#define MACMIIAR_CR_MASK    ((uint32_t)0xFFFFFFE3)
+
+/* ETHERNET MACCR register Mask */
+#define MACCR_CLEAR_MASK    ((uint32_t)0xFF20810F)  
+
+/* ETHERNET MACFCR register Mask */
+#define MACFCR_CLEAR_MASK   ((uint32_t)0x0000FF41)
+
+
+/* ETHERNET DMAOMR register Mask */
+#define DMAOMR_CLEAR_MASK   ((uint32_t)0xF8DE3F23)
+
+
+/* ETHERNET Remote Wake-up frame register length */
+#define ETH_WAKEUP_REGISTER_LENGTH      8
+
+/* ETHERNET Missed frames counter Shift */
+#define  ETH_DMA_RX_OVERFLOW_MISSEDFRAMES_COUNTERSHIFT     17
+
+/* ETHERNET DMA Tx descriptors Collision Count Shift */
+#define  ETH_DMATXDESC_COLLISION_COUNTSHIFT        3
+
+/* ETHERNET DMA Tx descriptors Buffer2 Size Shift */
+#define  ETH_DMATXDESC_BUFFER2_SIZESHIFT           16
+
+/* ETHERNET DMA Rx descriptors Frame Length Shift */
+#define  ETH_DMARXDESC_FRAME_LENGTHSHIFT           16
+
+/* ETHERNET DMA Rx descriptors Buffer2 Size Shift */
+#define  ETH_DMARXDESC_BUFFER2_SIZESHIFT           16
+
+/* ETHERNET errors */
+#define  ETH_ERROR              ((uint32_t)0)
+#define  ETH_SUCCESS            ((uint32_t)1)
 
 /**
   * @}
@@ -1598,22 +1758,25 @@ typedef struct  {
   * @{
   */ 
 void ETH_DeInit(void);
-uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, u16 PHYAddress);
+uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, uint16_t PHYAddress);
 void ETH_StructInit(ETH_InitTypeDef* ETH_InitStruct);
 void ETH_SoftwareReset(void);
 FlagStatus ETH_GetSoftwareResetStatus(void);
 void  ETH_Start(void);
-uint32_t ETH_HandleTxPkt(u8 *ppkt, u16 FrameLength);
-uint32_t ETH_HandleRxPkt(u8 *ppkt);
-uint32_t ETH_GetRxPktSize(void);
-void ETH_DropRxPkt(void);
+void  ETH_Stop(void);
+uint32_t ETH_GetRxPktSize(ETH_DMADESCTypeDef *DMARxDesc);
+
+
+#ifdef USE_ENHANCED_DMA_DESCRIPTORS
+ void ETH_EnhancedDescriptorCmd(FunctionalState NewState);
+#endif /* USE_ENHANCED_DMA_DESCRIPTORS */
 
 /** 
   * @brief  PHY  
   */ 
-u16 ETH_ReadPHYRegister(u16 PHYAddress, u16 PHYReg);
-uint32_t ETH_WritePHYRegister(u16 PHYAddress, u16 PHYReg, u16 PHYValue);
-uint32_t ETH_PHYLoopBackCmd(u16 PHYAddress, FunctionalState NewState);
+uint16_t ETH_ReadPHYRegister(uint16_t PHYAddress, uint16_t PHYReg);
+uint32_t ETH_WritePHYRegister(uint16_t PHYAddress, uint16_t PHYReg, uint16_t PHYValue);
+uint32_t ETH_PHYLoopBackCmd(uint16_t PHYAddress, FunctionalState NewState);
 
 /** 
   * @brief  MAC  
@@ -1626,8 +1789,8 @@ void ETH_BackPressureActivationCmd(FunctionalState NewState);
 FlagStatus ETH_GetMACFlagStatus(uint32_t ETH_MAC_FLAG);  
 ITStatus ETH_GetMACITStatus(uint32_t ETH_MAC_IT);
 void ETH_MACITConfig(uint32_t ETH_MAC_IT, FunctionalState NewState);
-void ETH_MACAddressConfig(uint32_t MacAddr, u8 *Addr);
-void ETH_GetMACAddress(uint32_t MacAddr, u8 *Addr);
+void ETH_MACAddressConfig(uint32_t MacAddr, uint8_t *Addr);
+void ETH_GetMACAddress(uint32_t MacAddr, uint8_t *Addr);
 void ETH_MACAddressPerfectFilterCmd(uint32_t MacAddr, FunctionalState NewState);
 void ETH_MACAddressFilterConfig(uint32_t MacAddr, uint32_t Filter);
 void ETH_MACAddressMaskBytesFilterConfig(uint32_t MacAddr, uint32_t MaskByte);
@@ -1635,8 +1798,11 @@ void ETH_MACAddressMaskBytesFilterConfig(uint32_t MacAddr, uint32_t MaskByte);
 /** 
   * @brief  DMA Tx/Rx descriptors  
   */ 
-void ETH_DMATxDescChainInit(ETH_DMADESCTypeDef *DMATxDescTab, u8 *TxBuff, uint32_t TxBuffCount);
-void ETH_DMATxDescRingInit(ETH_DMADESCTypeDef *DMATxDescTab, u8 *TxBuff1, u8 *TxBuff2, uint32_t TxBuffCount);
+void ETH_DMARxDescChainInit(ETH_DMADESCTypeDef *DMARxDescTab, uint8_t *RxBuff, uint32_t RxBuffCount);
+void ETH_DMATxDescChainInit(ETH_DMADESCTypeDef *DMATxDescTab, uint8_t* TxBuff, uint32_t TxBuffCount);
+uint32_t ETH_CheckFrameReceived(void);
+uint32_t ETH_Prepare_Transmit_Descriptors(u16 FrameLength);
+FrameTypeDef ETH_Get_Received_Frame(void);
 FlagStatus ETH_GetDMATxDescFlagStatus(ETH_DMADESCTypeDef *DMATxDesc, uint32_t ETH_DMATxDescFlag);
 uint32_t ETH_GetDMATxDescCollisionCount(ETH_DMADESCTypeDef *DMATxDesc);
 void ETH_SetDMATxDescOwnBit(ETH_DMADESCTypeDef *DMATxDesc);
@@ -1644,21 +1810,19 @@ void ETH_DMATxDescTransmitITConfig(ETH_DMADESCTypeDef *DMATxDesc, FunctionalStat
 void ETH_DMATxDescFrameSegmentConfig(ETH_DMADESCTypeDef *DMATxDesc, uint32_t DMATxDesc_FrameSegment);
 void ETH_DMATxDescChecksumInsertionConfig(ETH_DMADESCTypeDef *DMATxDesc, uint32_t DMATxDesc_Checksum);
 void ETH_DMATxDescCRCCmd(ETH_DMADESCTypeDef *DMATxDesc, FunctionalState NewState);
-void ETH_DMATxDescEndOfRingCmd(ETH_DMADESCTypeDef *DMATxDesc, FunctionalState NewState);
 void ETH_DMATxDescSecondAddressChainedCmd(ETH_DMADESCTypeDef *DMATxDesc, FunctionalState NewState);
 void ETH_DMATxDescShortFramePaddingCmd(ETH_DMADESCTypeDef *DMATxDesc, FunctionalState NewState);
-void ETH_DMATxDescTimeStampCmd(ETH_DMADESCTypeDef *DMATxDesc, FunctionalState NewState);
 void ETH_DMATxDescBufferSizeConfig(ETH_DMADESCTypeDef *DMATxDesc, uint32_t BufferSize1, uint32_t BufferSize2);
-void ETH_DMARxDescChainInit(ETH_DMADESCTypeDef *DMARxDescTab, u8 *RxBuff, uint32_t RxBuffCount);
-void ETH_DMARxDescRingInit(ETH_DMADESCTypeDef *DMARxDescTab, u8 *RxBuff1, u8 *RxBuff2, uint32_t RxBuffCount);
 FlagStatus ETH_GetDMARxDescFlagStatus(ETH_DMADESCTypeDef *DMARxDesc, uint32_t ETH_DMARxDescFlag);
+#ifdef USE_ENHANCED_DMA_DESCRIPTORS
+ FlagStatus ETH_GetDMAPTPRxDescExtendedFlagStatus(ETH_DMADESCTypeDef *DMAPTPRxDesc, uint32_t ETH_DMAPTPRxDescExtendedFlag);
+#endif /* USE_ENHANCED_DMA_DESCRIPTORS */
 void ETH_SetDMARxDescOwnBit(ETH_DMADESCTypeDef *DMARxDesc);
 uint32_t ETH_GetDMARxDescFrameLength(ETH_DMADESCTypeDef *DMARxDesc);
 void ETH_DMARxDescReceiveITConfig(ETH_DMADESCTypeDef *DMARxDesc, FunctionalState NewState);
-void ETH_DMARxDescEndOfRingCmd(ETH_DMADESCTypeDef *DMARxDesc, FunctionalState NewState);
 void ETH_DMARxDescSecondAddressChainedCmd(ETH_DMADESCTypeDef *DMARxDesc, FunctionalState NewState);
 uint32_t ETH_GetDMARxDescBufferSize(ETH_DMADESCTypeDef *DMARxDesc, uint32_t DMARxDesc_Buffer);
-
+FrameTypeDef ETH_Get_Received_Frame_interrupt(void);
 /** 
   * @brief  DMA
   */ 
@@ -1682,6 +1846,8 @@ uint32_t ETH_GetCurrentTxBufferAddress(void);
 uint32_t ETH_GetCurrentRxBufferAddress(void);
 void ETH_ResumeDMATransmission(void);
 void ETH_ResumeDMAReception(void);
+void ETH_SetReceiveWatchdogTimer(uint8_t Value);
+
 
 /** 
   * @brief  PMT  
@@ -1697,6 +1863,8 @@ void ETH_PowerDownCmd(FunctionalState NewState);
 /** 
   * @brief  MMC  
   */ 
+void ETH_MMCCounterFullPreset(void);
+void ETH_MMCCounterHalfPreset(void);
 void ETH_MMCCounterFreezeCmd(FunctionalState NewState);
 void ETH_MMCResetOnReadCmd(FunctionalState NewState);
 void ETH_MMCCounterRolloverCmd(FunctionalState NewState);
@@ -1705,31 +1873,11 @@ void ETH_MMCITConfig(uint32_t ETH_MMC_IT, FunctionalState NewState);
 ITStatus ETH_GetMMCITStatus(uint32_t ETH_MMC_IT);
 uint32_t ETH_GetMMCRegister(uint32_t ETH_MMCReg);
 
-/** 
-  * @brief  PTP  
-  */ 
-uint32_t ETH_HandlePTPTxPkt(u8 *ppkt, u16 FrameLength, uint32_t *PTPTxTab);
-uint32_t ETH_HandlePTPRxPkt(u8 *ppkt, uint32_t *PTPRxTab);
-void ETH_DMAPTPTxDescChainInit(ETH_DMADESCTypeDef *DMATxDescTab, ETH_DMADESCTypeDef *DMAPTPTxDescTab, u8* TxBuff, uint32_t TxBuffCount);
-void ETH_DMAPTPRxDescChainInit(ETH_DMADESCTypeDef *DMARxDescTab, ETH_DMADESCTypeDef *DMAPTPRxDescTab, u8 *RxBuff, uint32_t RxBuffCount);
-void ETH_EnablePTPTimeStampAddend(void);
-void ETH_EnablePTPTimeStampInterruptTrigger(void);
-void ETH_EnablePTPTimeStampUpdate(void);
-void ETH_InitializePTPTimeStamp(void);
-void ETH_PTPUpdateMethodConfig(uint32_t UpdateMethod);
-void ETH_PTPTimeStampCmd(FunctionalState NewState);
-FlagStatus ETH_GetPTPFlagStatus(uint32_t ETH_PTP_FLAG);
-void ETH_SetPTPSubSecondIncrement(uint32_t SubSecondValue);
-void ETH_SetPTPTimeStampUpdate(uint32_t Sign, uint32_t SecondValue, uint32_t SubSecondValue);
-void ETH_SetPTPTimeStampAddend(uint32_t Value);
-void ETH_SetPTPTargetTime(uint32_t HighValue, uint32_t LowValue);
-uint32_t ETH_GetPTPRegister(uint32_t ETH_PTPReg);
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32_ETH_H */
+#endif /* __STM32F4x7_ETH_H */
 /**
   * @}
   */ 
@@ -1739,4 +1887,4 @@ uint32_t ETH_GetPTPRegister(uint32_t ETH_PTPReg);
   * @}
   */ 
 
-/******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

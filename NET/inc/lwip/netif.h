@@ -38,9 +38,8 @@
 
 #include "lwip/err.h"
 
-#include "lwip/ip_addr.h"
-
-#include "lwip/inet.h"
+#include "ipv4/lwip/ip_addr.h"
+#include "ipv4/lwip/inet.h"
 #include "lwip/pbuf.h"
 #if LWIP_DHCP
 struct dhcp;

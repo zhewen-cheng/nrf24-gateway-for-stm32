@@ -11,7 +11,7 @@ INCFLAG =\
 -I../../NET/inc/netif \
 -I../../NET/inc/port \
 -I../../NET/inc \
--I../../NET/inc/appmak
+-I../../NET/inc/app
 
 
 CFLAGS  += $(INCFLAG)

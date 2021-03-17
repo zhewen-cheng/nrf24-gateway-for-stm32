@@ -59,6 +59,7 @@ int main(void)
   debugs("[System] Initial LEDs ...\r\n");
     Button_Init();
   debugs("[System] Initial Ethernet ...\r\n");
+  debugs("1345\r\n");
     ETH_BSP_Config();
   debugs("[System] Initial LWip ...\r\n");
     LwIP_Init();

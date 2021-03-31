@@ -27,7 +27,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4x7_eth.h"
+#include "stm32f429_eth.h"
 #include "stm32f4xx_rcc.h"
 #include <string.h>
 
@@ -416,29 +416,29 @@ uint32_t ETH_Init(ETH_InitTypeDef* ETH_InitStruct, uint16_t PHYAddress)
     /* Reset Timeout counter */
     timeout = 0;
     /* Read the result of the auto-negotiation */
-    RegValue = ETH_ReadPHYRegister(PHYAddress, PHY_SR);
+    //RegValue = ETH_ReadPHYRegister(PHYAddress, PHY_SR);
     /* Configure the MAC with the Duplex Mode fixed by the auto-negotiation process */
-    if((RegValue & PHY_DUPLEX_STATUS) != (uint32_t)RESET)
-    {
+    //if((RegValue & PHY_DUPLEX_STATUS) != (uint32_t)RESET)
+    //{
       /* Set Ethernet duplex mode to Full-duplex following the auto-negotiation */
-      ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;  
-    }
-    else
-    {
+     // ETH_InitStruct->ETH_Mode = ETH_Mode_FullDuplex;  
+   // }
+    //else
+    //{
       /* Set Ethernet duplex mode to Half-duplex following the auto-negotiation */
       ETH_InitStruct->ETH_Mode = ETH_Mode_HalfDuplex;           
-    }
+  //  }
     /* Configure the MAC with the speed fixed by the auto-negotiation process */
-    if(RegValue & PHY_SPEED_STATUS)
-    {  
+   // if(RegValue & PHY_SPEED_STATUS)
+   // {  
       /* Set Ethernet speed to 10M following the auto-negotiation */
-      ETH_InitStruct->ETH_Speed = ETH_Speed_10M; 
-    }
-    else
-    {   
+   //   ETH_InitStruct->ETH_Speed = ETH_Speed_10M; 
+   // }
+   // else
+  //  {   
       /* Set Ethernet speed to 100M following the auto-negotiation */ 
       ETH_InitStruct->ETH_Speed = ETH_Speed_100M;
-    }
+    //}
   }
   else
   {
@@ -1857,7 +1857,9 @@ void ETH_SoftwareReset(void)
   */
 FlagStatus ETH_GetSoftwareResetStatus(void)
 {
+  //debugs("%d\t\n",ETH->DMABMR);
   FlagStatus bitstatus = RESET;
+  
   if((ETH->DMABMR & ETH_DMABMR_SR) != (uint32_t)RESET)
   {
     bitstatus = SET;
@@ -1866,7 +1868,9 @@ FlagStatus ETH_GetSoftwareResetStatus(void)
   {
     bitstatus = RESET;
   }
+  
   return bitstatus;
+  
 }
 
 /**

@@ -36,7 +36,7 @@
 #include "ethernetif.h"
 #include "coocox.h"
 #include <stdio.h>
-#include "stm32f4x7_eth_bsp.h"
+#include "stm32f429_phy.h"
 #include "netconf.h"
 
 /* Private typedef -----------------------------------------------------------*/

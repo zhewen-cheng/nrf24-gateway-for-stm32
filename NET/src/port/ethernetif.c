@@ -41,7 +41,7 @@
 #include "lwip/mem.h"
 #include "netif/etharp.h"
 #include "ethernetif.h"
-#include "stm32f4x7_eth.h"
+#include "stm32f429_eth.h"
 #include <string.h>
 
 /* Network interface name */

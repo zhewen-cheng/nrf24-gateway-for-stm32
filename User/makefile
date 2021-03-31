@@ -20,11 +20,6 @@ INCFLAG =\
 
 
 
-
-
-
-
-
 CFLAGS  += $(INCFLAG)
 
 SRCOBJS =\

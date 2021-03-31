@@ -2,8 +2,8 @@
 #include "stm32f4xx_conf.h"
 #include "user_config.h"
 #include "stm32f4xx_gpio.h"
-#include "stm32f4x7_eth_bsp.h"
-#include "stm32f4x7_eth.h"
+#include "stm32f429_phy.h"
+#include "stm32f429_eth.h"
 #include "stm32f4xx.h"
 #include "init.h"
 #include "main.h"
@@ -59,7 +59,6 @@ int main(void)
   debugs("[System] Initial LEDs ...\r\n");
     Button_Init();
   debugs("[System] Initial Ethernet ...\r\n");
-  debugs("1345\r\n");
     ETH_BSP_Config();
   debugs("[System] Initial LWip ...\r\n");
     LwIP_Init();

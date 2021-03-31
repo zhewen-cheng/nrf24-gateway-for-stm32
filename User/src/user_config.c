@@ -12,7 +12,7 @@
 #include "stm32f4xx_conf.h"
 #include "nrf24l01.h"
 #include "user_config.h"
-#include "stm32f4x7_eth.h"
+#include "stm32f429_eth.h"
 
 
 extern ETH_DMADESCTypeDef  DMARxDscrTab[ETH_RXBUFNB];/* Ethernet Rx MA Descriptor */

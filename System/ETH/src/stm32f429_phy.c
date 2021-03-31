@@ -27,8 +27,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "lwip/opt.h"
-#include "stm32f4x7_eth.h"
-#include "stm32f4x7_eth_bsp.h"
+#include "stm32f429_eth.h"
+#include "stm32f429_phy.h"
 #include "coocox.h"
 #include "netconf.h"
 #include "lwip/dhcp.h"
@@ -60,7 +60,7 @@ static void ETH_MACDMA_Config(void);
 void ETH_BSP_Config(void)
 {
   RCC_ClocksTypeDef RCC_Clocks;
-
+  
   /***************************************************************************
     NOTE: 
          When using Systick to manage the delay in Ethernet driver, the Systick
@@ -70,9 +70,10 @@ void ETH_BSP_Config(void)
 
   /* Configure Systick clock source as HCLK */
   SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
-
+  
   /* SystTick configuration: an interrupt every 10ms */
   RCC_GetClocksFreq(&RCC_Clocks);
+  
   SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
 
   /* Set Systick interrupt priority to 0*/
@@ -87,7 +88,7 @@ void ETH_BSP_Config(void)
   /* Get Ethernet link status*/
   if(ETH_ReadPHYRegister(DP83848_PHY_ADDRESS, PHY_SR) & 1)
   {
-    EthStatus |= ETH_LINK_FLAG;
+    EthStatus |= ETH_LINK_FLAG; 
   }
 
   /* Configure the PHY to generate an interrupt on change of link status */
@@ -107,26 +108,27 @@ static void ETH_MACDMA_Config(void)
   /* Enable ETHERNET clock  */
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_ETH_MAC | RCC_AHB1Periph_ETH_MAC_Tx |
                         RCC_AHB1Periph_ETH_MAC_Rx, ENABLE);
+  
 
   /* Reset ETHERNET on AHB Bus */
   ETH_DeInit();
-
+  
   /* Software reset */
   ETH_SoftwareReset();
-
+  
   /* Wait for software reset */
   while (ETH_GetSoftwareResetStatus() == SET);
-
+ 
   /* ETHERNET Configuration --------------------------------------------------*/
   /* Call ETH_StructInit if you don't like to configure all ETH_InitStructure parameter */
   ETH_StructInit(&ETH_InitStructure);
-
+  
   /* Fill ETH_InitStructure parametrs */
   /*------------------------   MAC   -----------------------------------*/
   ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Enable;
-//  ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable;
-//  ETH_InitStructure.ETH_Speed = ETH_Speed_10M;
-//  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;
+  ETH_InitStructure.ETH_AutoNegotiation = ETH_AutoNegotiation_Disable;
+  ETH_InitStructure.ETH_Speed = ETH_Speed_10M;
+  ETH_InitStructure.ETH_Mode = ETH_Mode_FullDuplex;
 
   ETH_InitStructure.ETH_LoopbackMode = ETH_LoopbackMode_Disable;
   ETH_InitStructure.ETH_RetryTransmission = ETH_RetryTransmission_Disable;
@@ -172,36 +174,32 @@ void ETH_GPIO_Config(void)
   GPIO_InitTypeDef GPIO_InitStructure;
   
   /* Enable GPIOs clocks */
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOB |
-                         RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOI |
-                         RCC_AHB1Periph_GPIOG | RCC_AHB1Periph_GPIOH |
-                         RCC_AHB1Periph_GPIOF, ENABLE);
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA |
+                         RCC_AHB1Periph_GPIOC |
+                         RCC_AHB1Periph_GPIOB , 
+                         ENABLE);
 
   /* Enable SYSCFG clock */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);  
 
   /* Configure MCO (PA8) */
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;  
   GPIO_Init(GPIOA, &GPIO_InitStructure);
 
+  /*GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;  
+  GPIO_Init(GPIOA, &GPIO_InitStructure);*/
+
   /* MII/RMII Media interface selection --------------------------------------*/
-#ifdef MII_MODE /* Mode MII with STM324xx-EVAL  */
- #ifdef PHY_CLOCK_MCO
-
-
-  /* Output HSE clock (25MHz) on MCO pin (PA8) to clock the PHY */
-  RCC_MCO1Config(RCC_MCO1Source_HSE, RCC_MCO1Div_1);
- #endif /* PHY_CLOCK_MCO */
-
-  SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_MII);
-#elif defined RMII_MODE  /* Mode RMII with STM324xx-EVAL */
 
   SYSCFG_ETH_MediaInterfaceConfig(SYSCFG_ETH_MediaInterface_RMII);
-#endif
 
 /* Ethernet pins configuration ************************************************/
    /*
@@ -232,40 +230,20 @@ void ETH_GPIO_Config(void)
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_ETH);
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_ETH);
 
-  /* Configure PB5 and PB8 */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_8;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_ETH);	
-  GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_ETH);
-
   /* Configure PC1, PC2, PC3, PC4 and PC5 */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 |GPIO_Pin_4 | GPIO_Pin_5;
   GPIO_Init(GPIOC, &GPIO_InitStructure);
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource1, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOC, GPIO_PinSource2, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOC, GPIO_PinSource3, GPIO_AF_ETH);
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource4, GPIO_AF_ETH);
   GPIO_PinAFConfig(GPIOC, GPIO_PinSource5, GPIO_AF_ETH);
                                 
   /* Configure PG11, PG14 and PG13 */
-  GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14;
-  GPIO_Init(GPIOG, &GPIO_InitStructure);
-  GPIO_PinAFConfig(GPIOG, GPIO_PinSource11, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOG, GPIO_PinSource13, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOG, GPIO_PinSource14, GPIO_AF_ETH);
+  GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_ETH);
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_ETH);
 
-  /* Configure PH2, PH3, PH6, PH7 */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_6 | GPIO_Pin_7;
-  GPIO_Init(GPIOH, &GPIO_InitStructure);
-  GPIO_PinAFConfig(GPIOH, GPIO_PinSource2, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOH, GPIO_PinSource3, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOH, GPIO_PinSource6, GPIO_AF_ETH);
-  GPIO_PinAFConfig(GPIOH, GPIO_PinSource7, GPIO_AF_ETH);
-
-  /* Configure PI10 */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-  GPIO_Init(GPIOI, &GPIO_InitStructure);
-  GPIO_PinAFConfig(GPIOI, GPIO_PinSource10, GPIO_AF_ETH);
 }
 
 /**
